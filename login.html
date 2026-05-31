@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso | Planogram Pro Builder</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Outfit:wght@700;900&display=swap"
+        rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <!-- Login Screen -->
+    <div id="login-screen" class="full-screen-overlay">
+        <div class="login-card glass">
+            <div style="text-align: center; margin-bottom: 32px;">
+                <div style="display: inline-flex; align-items: center; gap: 14px; margin-bottom: 16px;">
+                    <img src="logo.png" alt="Logo" style="height: 48px; width: auto; object-fit: contain;"
+                        onerror="this.style.display='none'">
+                </div>
+                <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 8px; color: var(--text);">Gestor de
+                    Planogramas</h2>
+                <p style="color: var(--text-muted); font-size: 13px;">Ingresa tus credenciales para continuar</p>
+            </div>
+            <div id="login-error"
+                style="color: #ef4444; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); padding: 10px; border-radius: 6px; font-size: 13px; display: none; margin-bottom: 16px; text-align: center;">
+                Credenciales incorrectas</div>
+            <div class="field" style="margin-bottom: 16px;">
+                <label>Usuario</label>
+                <input type="text" id="login-username" placeholder="admin" autocomplete="off"
+                    style="width: 100%; background: var(--input-bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; color: var(--text); font-size: 14px;">
+            </div>
+            <div class="field" style="margin-bottom: 24px;">
+                <label>Contraseña</label>
+                <input type="password" id="login-password" placeholder="••••••••"
+                    style="width: 100%; background: var(--input-bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; color: var(--text); font-size: 14px;">
+            </div>
+            <button id="btn-login"
+                style="width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;">Acceder</button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/login.js"></script>
+</body>
+
+</html>

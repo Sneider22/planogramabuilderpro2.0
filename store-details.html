@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Góndolas | Planogram Pro Builder</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Outfit:wght@700;900&display=swap"
+        rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css">
+
+    <!-- PDF Generation Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <!-- Excel Generation Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+
+<body>
+
+    <!-- Store Details Screen (Gondolas List) -->
+    <div id="store-details-screen" class="full-screen-overlay dashboard-screen">
+        <div class="store-dashboard">
+            <header class="store-header"
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0;">
+                <div class="store-header-inner">
+                    <div style="display: flex; gap: 16px; align-items: center;">
+                        <button id="btn-back-to-stores-list"
+                            style="background: transparent; border: 1px solid var(--border); color: var(--text-muted); padding: 8px 16px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 600;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="19" y1="12" x2="5" y2="12"></line>
+                                <polyline points="12 19 5 12 12 5"></polyline>
+                            </svg>
+                            Mis Tiendas
+                        </button>
+                        <div style="width:1px; height:24px; background:var(--border);"></div>
+                        <img src="logo.png" alt="Logo" style="height: 38px; width: auto; object-fit: contain;"
+                            onerror="this.style.display='none'">
+                        <div>
+                            <h2 id="details-store-name" style="font-size: 24px; font-weight: 700;">Nombre de Tienda</h2>
+                            <p style="color: var(--text-muted); font-size: 13px; margin-top: 4px;">Gestiona las góndolas de esta tienda</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <button id="btn-global-report"
+                            style="background: rgba(99, 102, 241, 0.1); color: var(--primary); border: 1px solid var(--primary); padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Reporte
+                            Global</button>
+                        <button id="btn-create-gondola"
+                            style="background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">+
+                            Nueva Góndola</button>
+                        <button id="btn-logout-details"
+                            style="background: transparent; color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">
+                            Cerrar Sesión
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <div class="store-dashboard-content">
+                <div id="gondola-list"
+                    style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; flex: 1; align-content: start;">
+                    <!-- Gondolas injected here -->
+                </div>
+
+                <!-- Modal para Crear Nueva Góndola -->
+                <div id="create-gondola-modal" class="premium-modal-overlay" style="display: none;">
+                    <div class="premium-modal-card">
+                        <div class="premium-modal-header">
+                            <h3>Crear Nueva Góndola</h3>
+                            <button id="btn-close-gondola-modal-x" class="premium-modal-close">&times;</button>
+                        </div>
+                        <div class="premium-modal-body">
+                            <div class="field">
+                                <label>Nombre de la Góndola</label>
+                                <input type="text" id="new-gondola-name" placeholder="Ej. Góndola A, Estantería Central..." autocomplete="off">
+                            </div>
+                            <div class="field">
+                                <label>Pasillo (Opcional)</label>
+                                <input type="text" id="new-gondola-aisle" placeholder="Ej. Salud, Lácteos, Bebidas..." autocomplete="off">
+                            </div>
+                        </div>
+                        <div class="premium-modal-footer">
+                            <button id="btn-cancel-create-gondola" class="btn-premium-secondary">Cancelar</button>
+                            <button id="btn-confirm-create-gondola" class="btn-premium-primary">Crear Góndola</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal para Editar Góndola -->
+                <div id="edit-gondola-modal" class="premium-modal-overlay" style="display: none;">
+                    <div class="premium-modal-card">
+                        <div class="premium-modal-header">
+                            <h3>Editar Góndola</h3>
+                            <button id="btn-close-edit-gondola-modal-x" class="premium-modal-close">&times;</button>
+                        </div>
+                        <div class="premium-modal-body">
+                            <div class="field">
+                                <label>Nombre de la Góndola</label>
+                                <input type="text" id="edit-gondola-name" placeholder="Ej. Góndola A, Estantería Central..." autocomplete="off">
+                            </div>
+                            <div class="field">
+                                <label>Pasillo (Opcional)</label>
+                                <input type="text" id="edit-gondola-aisle" placeholder="Ej. Salud, Lácteos, Bebidas..." autocomplete="off">
+                            </div>
+                        </div>
+                        <div class="premium-modal-footer">
+                            <button id="btn-cancel-edit-gondola" class="btn-premium-secondary">Cancelar</button>
+                            <button id="btn-save-gondola" class="btn-premium-primary">Guardar Cambios</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Consolidated Store Report View -->
+                <div id="details-report-section" style="display: none; margin-top: 32px; animation: slideDown 0.3s ease;">
+                    <div class="report-card" style="margin-bottom: 30px;">
+                        <div class="report-card__header">
+                            <div>
+                                <h3 id="details-report-title" class="report-card__title">Reporte Consolidado de Tienda</h3>
+                                <p class="report-card__subtitle">Análisis financiero y de inventario de todo el mobiliario activo</p>
+                            </div>
+                            <div class="report-card__actions">
+                                <button id="btn-details-download-pdf" class="report-button report-button--primary">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:2px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                    Descargar Reporte (PDF)
+                                </button>
+                                <button id="btn-details-download-xlsx" class="report-button report-button--secondary">
+                                    Descargar Reporte (Excel)
+                                </button>
+                                <button id="btn-close-details-report" class="report-button report-button--ghost">
+                                    Cerrar
+                                </button>
+                            </div>
+                        </div>
+                        <div id="details-report-content" class="report-card__content">
+                            <!-- Report generated dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/state.js"></script>
+    <script src="js/calculator.js"></script>
+    <script src="js/store-details.js"></script>
+</body>
+
+</html>
