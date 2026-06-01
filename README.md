@@ -6,22 +6,22 @@
 
 ## Características Principales
 
-### 1. 🧊 Motor de Visualización 3D
+### 1. Motor de Visualización 3D
 - Renderizado técnico utilizando transformaciones CSS3.
 - Controles interactivos de **Giro Horizontal**, **Inclinación** y **Zoom**.
 - Representación real de profundidad (Eje Z) y apilamiento (Eje Y).
 
-### 2. 📚 Librería de Mobiliario (Presets)
+### 2. Librería de Mobiliario (Presets)
 - Clasificación por tipos: **Góndola de Pared**, **Góndola Central (Doble)**, **Cabecera** y **Mural Refrigerado**.
 - Sistema de persistencia basado en `localStorage` para guardar y cargar configuraciones personalizadas.
 - Presets de dimensiones estándar de la industria para configuración rápida.
 
-### 3. 🛒 Gestión de Inventario Inteligente
+### 3. Gestión de Inventario Inteligente
 - **Cálculo de Capacidad:** Validación en tiempo real de espacio lineal (Ancho) y vertical (Alto).
 - **Catálogo Segmentado:** Productos organizados por categorías (Lácteos, Snacks, Limpieza, Despensa, Bebidas).
 - **Dashboard en Tiempo Real:** Seguimiento de Valor de Inventario ($), Unidades Totales y SKUs únicos.
 
-### 4. 📄 Reportes Técnicos
+### 4. Reportes Técnicos
 - Generación de informes detallados en formato HTML.
 - **Exportación a PDF:** Integración con `jsPDF` para descargar reportes profesionales que incluyen SKU, nombre, cantidades, precio unitario y valor total.
 
