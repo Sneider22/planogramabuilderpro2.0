@@ -65,7 +65,7 @@
 
             <div class="store-dashboard-content">
                 <div id="gondola-list"
-                    style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; flex: 1; align-content: start;">
+                    style="display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 20px; flex: 1; align-content: start;">
                     <!-- Gondolas injected here -->
                 </div>
 
@@ -84,6 +84,20 @@
                             <div class="field">
                                 <label>Pasillo (Opcional)</label>
                                 <input type="text" id="new-gondola-aisle" placeholder="Ej. Salud, Lácteos, Bebidas..." autocomplete="off">
+                            </div>
+                            <div class="field">
+                                <label>Categoría de la Góndola (Opcional)</label>
+                                <select id="new-gondola-category" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--input-bg); color: var(--text); outline: none; font-size: 14px; font-weight: 500; margin-top: 4px;">
+                                    <option value="">Seleccione una categoría...</option>
+                                    <option value="Medicina">Medicina</option>
+                                    <option value="Cosméticos">Cosméticos</option>
+                                    <option value="Alimentos">Alimentos</option>
+                                    <option value="Higiene">Higiene</option>
+                                </select>
+                            </div>
+                            <div class="field" style="margin-top: 12px;">
+                                <label>Información Adicional (Opcional)</label>
+                                <input type="text" id="new-gondola-description" placeholder="Ej. primera góndola al entrar al pasillo, góndola de fondo..." autocomplete="off">
                             </div>
                         </div>
                         <div class="premium-modal-footer">
@@ -109,10 +123,46 @@
                                 <label>Pasillo (Opcional)</label>
                                 <input type="text" id="edit-gondola-aisle" placeholder="Ej. Salud, Lácteos, Bebidas..." autocomplete="off">
                             </div>
+                            <div class="field">
+                                <label>Categoría de la Góndola (Opcional)</label>
+                                <select id="edit-gondola-category" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--input-bg); color: var(--text); outline: none; font-size: 14px; font-weight: 500; margin-top: 4px;">
+                                    <option value="">Seleccione una categoría...</option>
+                                    <option value="Medicina">Medicina</option>
+                                    <option value="Cosméticos">Cosméticos</option>
+                                    <option value="Alimentos">Alimentos</option>
+                                    <option value="Higiene">Higiene</option>
+                                </select>
+                            </div>
+                            <div class="field" style="margin-top: 12px;">
+                                <label>Información Adicional (Opcional)</label>
+                                <input type="text" id="edit-gondola-description" placeholder="Ej. primera góndola al entrar al pasillo, góndola de fondo..." autocomplete="off">
+                            </div>
                         </div>
                         <div class="premium-modal-footer">
                             <button id="btn-cancel-edit-gondola" class="btn-premium-secondary">Cancelar</button>
                             <button id="btn-save-gondola" class="btn-premium-primary">Guardar Cambios</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal para Confirmación de Eliminación de Góndola -->
+                <div id="delete-gondola-confirm-modal" class="premium-modal-overlay" style="display: none;">
+                    <div class="premium-modal-card" style="max-width: 400px;">
+                        <div class="premium-modal-header" style="border-bottom: none; padding-bottom: 0;">
+                            <h3 style="color: #ef4444; font-size: 18px; font-weight: 700;">¿Eliminar Góndola?</h3>
+                            <button id="btn-close-delete-gondola-modal-x" class="premium-modal-close">&times;</button>
+                        </div>
+                        <div class="premium-modal-body" style="padding-top: 12px; padding-bottom: 12px;">
+                            <p style="font-size: 14px; color: var(--text-muted); line-height: 1.5; margin: 0;">
+                                ¿Estás seguro de que deseas eliminar permanentemente la góndola <strong id="delete-modal-gondola-name" style="color: var(--text);">Nombre</strong>?
+                            </p>
+                            <p style="font-size: 12px; color: #ef4444; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.15); padding: 10px 12px; border-radius: 8px; margin: 12px 0 0 0; font-weight: 500; line-height: 1.4;">
+                                ⚠️ Esta acción eliminará toda la configuración de estanterías y productos asignados a esta góndola y no se puede deshacer.
+                            </p>
+                        </div>
+                        <div class="premium-modal-footer" style="background: transparent; border-top: none; padding-top: 0; justify-content: flex-end; gap: 10px;">
+                            <button id="btn-cancel-delete-gondola-modal" class="btn-premium-secondary">Cancelar</button>
+                            <button id="btn-confirm-delete-gondola" class="btn-premium-primary" style="background: #ef4444 !important; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2) !important;">Sí, Eliminar</button>
                         </div>
                     </div>
                 </div>

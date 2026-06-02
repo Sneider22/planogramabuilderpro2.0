@@ -13,7 +13,7 @@ class AppState {
         } catch (e) {
             this.stores = [];
         }
-        
+
         try {
             const savedAutoId = localStorage.getItem('planogram_next_store_auto_id');
             if (savedAutoId !== null) {
@@ -56,7 +56,7 @@ class AppState {
             { id: 'P009', sku: 'SAP-FAR09', name: 'Venda Elástica 10cm x 5m', width: 6, height: 14, depth: 6, price: 4.50, color: '#10b981', category: 'Farmacia' },
             { id: 'P010', sku: 'SAP-FAR10', name: 'Crema Antitranspirante', width: 8, height: 18, depth: 8, price: 2.10, color: '#06b6d4', category: 'Farmacia' },
             { id: 'P011', sku: 'SAP-FAR11', name: 'Gel de Ducha', width: 8, height: 12, depth: 3, price: 1.50, color: '#f59e0b', category: 'Farmacia' },
-        
+
 
             // Cuidado Personal
             { id: 'P012', sku: 'SAP-CUI01', name: 'Champú Herbal Locatel 400ml', width: 7, height: 21, depth: 5, price: 5.40, color: '#047857', category: 'Cuidado Personal' },
@@ -137,18 +137,18 @@ class AppState {
         if (oldId !== newId && this.stores.some(s => s.id === newId)) {
             return { success: false, reason: 'Ya existe una tienda con este ID.' };
         }
-        
+
         const store = this.stores.find(s => s.id === oldId);
         if (store) {
             store.name = newName;
             store.id = newId;
             this._saveStores();
-            
+
             if (this.currentStoreId === oldId) {
                 this.currentStoreId = newId;
                 localStorage.setItem('planogram_store_id', newId);
             }
-            
+
             return { success: true };
         }
         return { success: false, reason: 'Tienda no encontrada.' };
@@ -183,27 +183,33 @@ class AppState {
     }
 
     // --- Gondola Persistence (Auto-save) ---
-    createNewGondola(name = 'Nueva Góndola', aisle = '') {
+    createNewGondola(name = 'Nueva Góndola', aisle = '', category = '', description = '') {
         if (!this.currentStoreId) return;
         const newId = 'gondola-' + Date.now();
         const newGondolaData = {
             id: newId,
             name: name,
             aisle: (aisle || '').trim(),
+            category: (category || '').trim(),
+            description: (description || '').trim(),
             config: this._getDefaultGondola()
         };
-        
+
         this.library.push(newGondolaData);
         this.currentGondolaId = newId;
         this.gondola = JSON.parse(JSON.stringify(newGondolaData.config));
         this._buildShelves();
-        
+
+        // Inicializar historial
+        this.undoStack = [JSON.stringify(this.gondola)];
+        this.redoStack = [];
+
         const store = this.stores.find(s => s.id === this.currentStoreId);
         if (store) {
             store.library = this.library;
             this._saveStores();
         }
-        
+
         this.emit('library:updated', this.library);
         this.emit('gondola:updated', this.gondola);
         this.emit('dashboard:update');
@@ -219,6 +225,8 @@ class AppState {
                 this.gondola.autoPack = true;
             }
             this._buildShelves();
+            this.undoStack = [];
+            this.redoStack = [];
             this.emit('gondola:updated', this.gondola);
             this.emit('dashboard:update');
         }
@@ -226,6 +234,7 @@ class AppState {
 
     toggleAutoPack() {
         if (!this.gondola) return;
+        const previousState = JSON.stringify(this.gondola);
         this.gondola.autoPack = !this.gondola.autoPack;
         if (this.gondola.autoPack) {
             // Re-pack all standard shelves
@@ -235,6 +244,7 @@ class AppState {
                 }
             });
         }
+        this.pushToUndoStack(previousState);
         this._autoSave();
         this.emit('gondola:updated', this.gondola);
         this.emit('dashboard:update');
@@ -244,24 +254,26 @@ class AppState {
         if (!this.currentStoreId || !this.currentGondolaId) return;
         const currentData = this.library.find(p => p.id === this.currentGondolaId);
         if (!currentData) return;
-        
+
         const newId = 'gondola-' + Date.now();
         const newGondolaData = {
             id: newId,
             name: currentData.name + ' (Copia)',
             aisle: (currentData.aisle || '').trim(),
+            category: (currentData.category || '').trim(),
+            description: (currentData.description || '').trim(),
             config: JSON.parse(JSON.stringify(this.gondola))
         };
-        
+
         this.library.push(newGondolaData);
         this.currentGondolaId = newId;
-        
+
         const store = this.stores.find(s => s.id === this.currentStoreId);
         if (store) {
             store.library = this.library;
             this._saveStores();
         }
-        
+
         this.emit('library:updated', this.library);
         this.emit('gondola:updated', this.gondola);
         this.emit('dashboard:update');
@@ -270,22 +282,24 @@ class AppState {
     deleteGondola(id) {
         if (!this.currentStoreId) return;
         this.library = this.library.filter(p => p.id !== id);
-        
+
         const store = this.stores.find(s => s.id === this.currentStoreId);
         if (store) {
             store.library = this.library;
             this._saveStores();
         }
-        
+
         this.emit('library:updated', this.library);
     }
 
-    renameGondola(id, newName, aisle = '') {
+    renameGondola(id, newName, aisle = '', category = '', description = '') {
         if (!this.currentStoreId) return;
         const gondolaObj = this.library.find(p => p.id === id);
         if (gondolaObj) {
             gondolaObj.name = newName;
             gondolaObj.aisle = (aisle || '').trim();
+            gondolaObj.category = (category || '').trim();
+            gondolaObj.description = (description || '').trim();
             const store = this.stores.find(s => s.id === this.currentStoreId);
             if (store) {
                 store.library = this.library;
@@ -309,13 +323,64 @@ class AppState {
         }
     }
 
+    pushToUndoStack(serializedState) {
+        if (!serializedState) return;
+        if (!this.undoStack) this.undoStack = [];
+        if (!this.redoStack) this.redoStack = [];
+
+        if (this.undoStack.length > 0 && this.undoStack[this.undoStack.length - 1] === serializedState) {
+            return;
+        }
+
+        this.undoStack.push(serializedState);
+        if (this.undoStack.length > 30) {
+            this.undoStack.shift();
+        }
+        this.redoStack = [];
+    }
+
+    undo() {
+        if (!this.undoStack || this.undoStack.length === 0) {
+            return { success: false, reason: 'Nada para deshacer' };
+        }
+        if (!this.redoStack) this.redoStack = [];
+        this.redoStack.push(JSON.stringify(this.gondola));
+
+        const prev = this.undoStack.pop();
+        this.gondola = JSON.parse(prev);
+        
+        this._autoSave();
+        this.emit('gondola:updated', this.gondola);
+        this.emit('dashboard:update');
+        return { success: true };
+    }
+
+    redo() {
+        if (!this.redoStack || this.redoStack.length === 0) {
+            return { success: false, reason: 'Nada para rehacer' };
+        }
+        if (!this.undoStack) this.undoStack = [];
+        this.undoStack.push(JSON.stringify(this.gondola));
+
+        const next = this.redoStack.pop();
+        this.gondola = JSON.parse(next);
+
+        this._autoSave();
+        this.emit('gondola:updated', this.gondola);
+        this.emit('dashboard:update');
+        return { success: true };
+    }
+
     // --- Gondola Logic ---
     updateGondola(updates) {
+        const previousState = JSON.stringify(this.gondola);
+        const shouldRecalculate = (updates.numShelves !== undefined || updates.gapBetweenShelves !== undefined || updates.baseHeight !== undefined);
         Object.assign(this.gondola, updates);
         if (updates.width !== undefined) this.gondola.shelfWidth = updates.width;
         if (updates.depth !== undefined) this.gondola.shelfDepth = updates.depth;
-        
-        this._buildShelves();
+
+        this._buildShelves(shouldRecalculate);
+        this.pushToUndoStack(previousState);
         this._autoSave();
         this.emit('gondola:updated', this.gondola);
         this.emit('dashboard:update');
@@ -323,9 +388,11 @@ class AppState {
 
     emptyGondola() {
         if (this.gondola.shelves) {
+            const previousState = JSON.stringify(this.gondola);
             this.gondola.shelves.forEach(shelf => {
                 shelf.products = [];
             });
+            this.pushToUndoStack(previousState);
             this._autoSave();
             this.emit('gondola:updated', this.gondola);
             this.emit('dashboard:update');
@@ -334,8 +401,10 @@ class AppState {
 
     setShelfType(shelfIndex, type) {
         if (this.gondola.shelves && this.gondola.shelves[shelfIndex]) {
+            const previousState = JSON.stringify(this.gondola);
             this.gondola.shelves[shelfIndex].type = type;
             this._recalculateShelfX(shelfIndex);
+            this.pushToUndoStack(previousState);
             this._autoSave();
             this.emit('gondola:updated', this.gondola);
             this.emit('dashboard:update');
@@ -344,28 +413,71 @@ class AppState {
 
     setShelfHookSpacing(shelfIndex, spacing) {
         if (this.gondola.shelves && this.gondola.shelves[shelfIndex]) {
+            const previousState = JSON.stringify(this.gondola);
             this.gondola.shelves[shelfIndex].hookSpacing = parseFloat(spacing) || 15;
             this._recalculateShelfX(shelfIndex);
+            this.pushToUndoStack(previousState);
             this._autoSave();
             this.emit('gondola:updated', this.gondola);
             this.emit('dashboard:update');
         }
     }
 
-    _buildShelves() {
+    setShelfGap(shelfIndex, newGap) {
+        if (!this.gondola.shelves || !this.gondola.shelves[shelfIndex]) return;
+        newGap = parseFloat(newGap);
+        if (isNaN(newGap) || newGap < 0) return;
+
+        const previousState = JSON.stringify(this.gondola);
+
+        const baseHeight = parseFloat(this.gondola.baseHeight) || 20;
+        const shelfThickness = parseFloat(this.gondola.shelfThickness) || 2;
+        const prevY = shelfIndex === 0 ? baseHeight : parseFloat(this.gondola.shelves[shelfIndex - 1].y) + shelfThickness;
+        const currentGap = parseFloat(this.gondola.shelves[shelfIndex].y) - prevY;
+        const delta = newGap - currentGap;
+
+        // Shift this shelf and all shelves above it
+        for (let idx = shelfIndex; idx < this.gondola.shelves.length; idx++) {
+            this.gondola.shelves[idx].y = parseFloat(this.gondola.shelves[idx].y) + delta;
+        }
+
+        this.pushToUndoStack(previousState);
+        this._autoSave();
+        this.emit('gondola:updated', this.gondola);
+        this.emit('dashboard:update');
+    }
+
+    setShelfDepth(shelfIndex, depth) {
+        if (this.gondola.shelves && this.gondola.shelves[shelfIndex]) {
+            const previousState = JSON.stringify(this.gondola);
+            this.gondola.shelves[shelfIndex].depth = parseFloat(depth) || this.gondola.shelfDepth;
+            this.pushToUndoStack(previousState);
+            this._autoSave();
+            this.emit('gondola:updated', this.gondola);
+            this.emit('dashboard:update');
+        }
+    }
+
+    _buildShelves(recalculate = false) {
         const g = this.gondola;
         const oldShelves = g.shelves || [];
         g.shelves = [];
 
         for (let i = 0; i < g.numShelves; i++) {
-            const yPos = g.baseHeight + i * (g.gapBetweenShelves + g.shelfThickness);
             const oldShelf = oldShelves[i];
+            let yPos;
+            if (!recalculate && oldShelf && oldShelf.y !== undefined && !isNaN(parseFloat(oldShelf.y))) {
+                yPos = parseFloat(oldShelf.y);
+            } else {
+                yPos = parseFloat(g.baseHeight) + i * (parseFloat(g.gapBetweenShelves) + parseFloat(g.shelfThickness));
+            }
             g.shelves.push({
                 id: `shelf-${i}`,
                 index: i,
                 y: yPos,
                 type: oldShelf ? (oldShelf.type || 'plancha') : 'plancha',
                 hookSpacing: oldShelf ? (oldShelf.hookSpacing || 15) : 15,
+                depth: oldShelf ? (oldShelf.depth !== undefined ? oldShelf.depth : g.shelfDepth) : g.shelfDepth,
                 products: oldShelf ? oldShelf.products : []
             });
         }
@@ -386,9 +498,9 @@ class AppState {
     getPlacedDimensions(productId, orientation = 0) {
         const prod = this.getProductById(productId);
         if (!prod) return { width: 0, height: 0, depth: 0 };
-        
+
         let w = prod.width, h = prod.height, d = prod.depth;
-        switch(orientation) {
+        switch (orientation) {
             case 1: return { width: h, height: w, depth: d }; // side (xy)
             case 2: return { width: d, height: h, depth: w }; // depth-facing (xz)
             case 3: return { width: d, height: w, depth: h }; // depth-facing side
@@ -429,7 +541,7 @@ class AppState {
     getPlacementBoundingBox(shelfIndex, placement) {
         const shelf = this.gondola.shelves[shelfIndex];
         const g = this.gondola;
-        
+
         let w = 0;
         let h = 0;
 
@@ -675,7 +787,7 @@ class AppState {
                 this._recalculateShelfX(shelfIndex);
                 return {
                     valid: false,
-                    reason: `Colisión de borde: El producto en el Gancho ${i+1} (${w1}cm de ancho) sobresaldría ${Math.abs(leftEdge).toFixed(1)}cm por el lateral izquierdo de la góndola.`
+                    reason: `Colisión de borde: El producto en el Gancho ${i + 1} (${w1}cm de ancho) sobresaldría ${Math.abs(leftEdge).toFixed(1)}cm por el lateral izquierdo de la góndola.`
                 };
             }
             if (rightEdge > shelfWidth) {
@@ -684,12 +796,12 @@ class AppState {
                 this._recalculateShelfX(shelfIndex);
                 return {
                     valid: false,
-                    reason: `Colisión de borde: El producto en el Gancho ${i+1} (${w1}cm de ancho) sobresaldría ${(rightEdge - shelfWidth).toFixed(1)}cm por el lateral derecho de la góndola.`
+                    reason: `Colisión de borde: El producto en el Gancho ${i + 1} (${w1}cm de ancho) sobresaldría ${(rightEdge - shelfWidth).toFixed(1)}cm por el lateral derecho de la góndola.`
                 };
             }
 
             if (i < shelf.products.length - 1) {
-                const p2 = shelf.products[i+1];
+                const p2 = shelf.products[i + 1];
                 let w2 = 0;
                 if (p2.layers && p2.layers.length > 0) {
                     const baseLayer = p2.layers[0];
@@ -710,7 +822,7 @@ class AppState {
                     this._recalculateShelfX(shelfIndex);
                     return {
                         valid: false,
-                        reason: `Colisión de productos: El producto en el Gancho ${i+1} (${w1}cm) choca con el producto del Gancho ${i+2} (${w2}cm) si reduces la distancia a ${spacing}cm.`
+                        reason: `Colisión de productos: El producto en el Gancho ${i + 1} (${w1}cm) choca con el producto del Gancho ${i + 2} (${w2}cm) si reduces la distancia a ${spacing}cm.`
                     };
                 }
             }
@@ -739,21 +851,21 @@ class AppState {
     _recalculateShelfX(shelfIndex) {
         const shelf = this.gondola.shelves[shelfIndex];
         if (!shelf) return;
-        
+
         const isPerchero = shelf.type === 'perchero';
-        
+
         if (isPerchero) {
             // Static hook spacing: dynamic per shelf level!
             const spacing = shelf.hookSpacing || 15;
             const numHooks = Math.floor(this.gondola.shelfWidth / spacing);
             const margin = (this.gondola.shelfWidth - (numHooks - 1) * spacing) / 2;
-            
+
             shelf.products.forEach((p, idx) => {
                 if (p.hookIndex === undefined) {
                     const occupied = shelf.products
                         .filter(other => other !== p && other.hookIndex !== undefined)
                         .map(other => other.hookIndex);
-                    
+
                     let found = 0;
                     for (let i = 0; i < numHooks; i++) {
                         if (!occupied.includes(i)) {
@@ -765,7 +877,7 @@ class AppState {
                 }
 
                 const hookX = margin + p.hookIndex * spacing;
-                
+
                 if (p.layers && p.layers.length > 0) {
                     const baseLayer = p.layers[0];
                     const dims = this.getPlacedDimensions(baseLayer.productId, baseLayer.orientation || 0);
@@ -800,6 +912,8 @@ class AppState {
         const shelf = this.gondola.shelves[shelfIndex];
         if (!shelf) return { success: false, reason: 'Error interno' };
 
+        const previousState = JSON.stringify(this.gondola);
+
         const dims = this.getPlacedDimensions(productId, 0);
         if (dims.width === 0) return { success: false, reason: 'Producto no encontrado' };
 
@@ -808,9 +922,9 @@ class AppState {
         const usableHeight = this.getShelfUsableHeight(shelfIndex);
 
         if (dims.height > usableHeight) {
-            return { 
-                success: false, 
-                reason: `Producto muy alto. \nAltura: ${dims.height}cm \nEspacio libre: ${usableHeight.toFixed(1)}cm` 
+            return {
+                success: false,
+                reason: `Producto muy alto. \nAltura: ${dims.height}cm \nEspacio libre: ${usableHeight.toFixed(1)}cm`
             };
         }
 
@@ -856,9 +970,9 @@ class AppState {
             // Plancha
             if (this.gondola.autoPack) {
                 if (availableWidth < requiredWidth) {
-                    return { 
-                        success: false, 
-                        reason: `Sin espacio lineal. \nRequerido: ${requiredWidth}cm \nDisponible: ${availableWidth.toFixed(1)}cm` 
+                    return {
+                        success: false,
+                        reason: `Sin espacio lineal. \nRequerido: ${requiredWidth}cm \nDisponible: ${availableWidth.toFixed(1)}cm`
                     };
                 }
 
@@ -931,6 +1045,7 @@ class AppState {
             return { success: false, reason: globalCheck.reason };
         }
 
+        this.pushToUndoStack(previousState);
         this._autoSave();
         this.emit('gondola:updated', this.gondola);
         this.emit('dashboard:update');
@@ -941,6 +1056,8 @@ class AppState {
         const sourceShelf = this.gondola.shelves[sourceShelfIndex];
         const targetShelf = this.gondola.shelves[targetShelfIndex];
         if (!sourceShelf || !targetShelf) return { success: false, reason: 'Error de estantes' };
+
+        const previousState = JSON.stringify(this.gondola);
 
         const placement = sourceShelf.products[sourcePlacementIndex];
         if (!placement) return { success: false, reason: 'Producto no encontrado' };
@@ -1042,7 +1159,7 @@ class AppState {
                     }
                 } else {
                     sourceShelf.products.splice(sourcePlacementIndex, 1);
-                    delete placement.hookIndex; 
+                    delete placement.hookIndex;
                     if (insertIndex !== undefined && insertIndex >= 0 && insertIndex <= targetShelf.products.length) {
                         targetShelf.products.splice(insertIndex, 0, placement);
                     } else {
@@ -1060,7 +1177,7 @@ class AppState {
                 if (this.gondola.shelfWidth - (finalX + requiredWidth) < snapThreshold) {
                     finalX = this.gondola.shelfWidth - requiredWidth;
                 }
-                
+
                 targetShelf.products.forEach((other, idx) => {
                     if (sourceShelfIndex === targetShelfIndex && idx === sourcePlacementIndex) return;
 
@@ -1088,7 +1205,7 @@ class AppState {
                     });
                 } else {
                     sourceShelf.products.splice(sourcePlacementIndex, 1);
-                    delete placement.hookIndex; 
+                    delete placement.hookIndex;
                     placement.x = finalX;
                     targetShelf.products.push(placement);
                 }
@@ -1127,6 +1244,7 @@ class AppState {
             return { success: false, reason: globalCheck.reason };
         }
 
+        this.pushToUndoStack(previousState);
         this._autoSave();
         this.emit('gondola:updated', this.gondola);
         this.emit('dashboard:update');
@@ -1137,6 +1255,8 @@ class AppState {
         const shelf = this.gondola.shelves[shelfIndex];
         const p = shelf.products[placementIndex];
         if (!p || !p.layers || p.layers.length === 0) return { success: false, reason: 'Pila inválida' };
+
+        const previousState = JSON.stringify(this.gondola);
 
         // 1. Calculate total width of base layer
         const baseLayer = p.layers[0];
@@ -1168,9 +1288,9 @@ class AppState {
         const nextStackHeight = currentStackHeight + newDims.height;
 
         if (nextStackHeight > usableHeight) {
-            return { 
-                success: false, 
-                reason: `Sin espacio vertical. \nAltura proyectada: ${nextStackHeight}cm \nEspacio libre: ${usableHeight.toFixed(1)}cm` 
+            return {
+                success: false,
+                reason: `Sin espacio vertical. \nAltura proyectada: ${nextStackHeight}cm \nEspacio libre: ${usableHeight.toFixed(1)}cm`
             };
         }
 
@@ -1193,6 +1313,7 @@ class AppState {
             };
         }
 
+        this.pushToUndoStack(previousState);
         this._autoSave();
         this.emit('gondola:updated', this.gondola);
         this.emit('dashboard:update');
@@ -1203,6 +1324,8 @@ class AppState {
         const p = this.gondola.shelves[sIdx].products[pIdx];
         if (!p || !p.layers) return;
 
+        const previousState = JSON.stringify(this.gondola);
+
         if (lIdx === undefined || lIdx === 0) {
             // Remove whole placement if base layer is deleted or no layer specified
             this.gondola.shelves[sIdx].products.splice(pIdx, 1);
@@ -1212,6 +1335,7 @@ class AppState {
         }
 
         this._recalculateShelfX(sIdx);
+        this.pushToUndoStack(previousState);
         this._autoSave();
         this.emit('gondola:updated', this.gondola);
         this.emit('dashboard:update');
@@ -1224,23 +1348,25 @@ class AppState {
         if (!p || !p.layers) return { success: false, reason: 'Producto no encontrado' };
         const layer = p.layers[lIdx];
         if (!layer) return { success: false, reason: 'Capa no encontrada' };
-        
+
+        const previousState = JSON.stringify(this.gondola);
+
         const originalOrientation = layer.orientation || 0;
         const originalProducts = JSON.parse(JSON.stringify(shelf.products));
 
         layer.orientation = ((layer.orientation || 0) + 1) % 6;
-        
+
         if (lIdx > 0) {
             const baseLayer = p.layers[0];
             const baseDims = this.getPlacedDimensions(baseLayer.productId, baseLayer.orientation || 0);
             const baseTotalWidth = baseDims.width * baseLayer.facings;
-            
+
             const newDims = this.getPlacedDimensions(layer.productId, layer.orientation);
             const newFacings = Math.floor(baseTotalWidth / newDims.width);
-            
+
             if (newFacings < 1) {
-                 layer.orientation = originalOrientation;
-                 return { success: false, reason: 'La rotación hace que la capa exceda el ancho de la base.' };
+                layer.orientation = originalOrientation;
+                return { success: false, reason: 'La rotación hace que la capa exceda el ancho de la base.' };
             }
             layer.facings = newFacings;
         }
@@ -1274,7 +1400,8 @@ class AppState {
             this._recalculateShelfX(sIdx);
             return { success: false, reason: globalCheck.reason };
         }
-        
+
+        this.pushToUndoStack(previousState);
         this._autoSave();
         this.emit('gondola:updated', this.gondola);
         this.emit('dashboard:update');
@@ -1289,15 +1416,17 @@ class AppState {
         const layer = p.layers[lIdx];
         if (!layer) return { success: false, reason: 'Capa no encontrada' };
 
+        const previousState = JSON.stringify(this.gondola);
+
         const originalProducts = JSON.parse(JSON.stringify(shelf.products));
 
         const dims = this.getPlacedDimensions(layer.productId, layer.orientation || 0);
-        
+
         const oldWidth = dims.width * layer.facings;
         const newWidth = dims.width * newFacings;
 
         layer.facings = newFacings;
-        
+
         if (lIdx === 0) {
             for (let i = 1; i < p.layers.length; i++) {
                 const uLayer = p.layers[i];
@@ -1324,6 +1453,7 @@ class AppState {
             return { success: false, reason: globalCheck.reason };
         }
 
+        this.pushToUndoStack(previousState);
         this._autoSave();
         this.emit('gondola:updated', this.gondola);
         this.emit('dashboard:update');

@@ -242,6 +242,29 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
+        const deleteGondolaConfirmModal = document.getElementById('delete-gondola-confirm-modal');
+        if (deleteGondolaConfirmModal) {
+            document.getElementById('btn-cancel-delete-gondola-modal').addEventListener('click', () => {
+                deleteGondolaConfirmModal.style.display = 'none';
+            });
+            document.getElementById('btn-close-delete-gondola-modal-x').addEventListener('click', () => {
+                deleteGondolaConfirmModal.style.display = 'none';
+            });
+            document.getElementById('btn-confirm-delete-gondola').addEventListener('click', () => {
+                const gondolaId = deleteGondolaConfirmModal.dataset.gondolaId;
+                if (gondolaId) {
+                    state.deleteGondola(gondolaId);
+                    deleteGondolaConfirmModal.style.display = 'none';
+                    renderStoreDetails();
+                }
+            });
+            deleteGondolaConfirmModal.addEventListener('click', (e) => {
+                if (e.target === deleteGondolaConfirmModal) {
+                    deleteGondolaConfirmModal.style.display = 'none';
+                }
+            });
+        }
+
         const emptyGondolaConfirmModal = document.getElementById('empty-gondola-confirm-modal');
         const btnEmpty = document.getElementById('btn-empty-gondola');
         if (btnEmpty) {
@@ -282,6 +305,10 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('btn-create-gondola').addEventListener('click', () => {
             document.getElementById('new-gondola-name').value = 'Nueva Góndola';
             document.getElementById('new-gondola-aisle').value = '';
+            const cat = document.getElementById('new-gondola-category');
+            if (cat) cat.value = '';
+            const desc = document.getElementById('new-gondola-description');
+            if (desc) desc.value = '';
             createGondolaModal.style.display = 'flex';
             document.getElementById('new-gondola-name').focus();
         });
@@ -297,8 +324,12 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('btn-confirm-create-gondola').addEventListener('click', () => {
             const name = document.getElementById('new-gondola-name').value.trim();
             const aisle = document.getElementById('new-gondola-aisle').value.trim();
+            const categorySelect = document.getElementById('new-gondola-category');
+            const category = categorySelect ? categorySelect.value : '';
+            const descInput = document.getElementById('new-gondola-description');
+            const description = descInput ? descInput.value.trim() : '';
             if (name) {
-                const newId = state.createNewGondola(name, aisle);
+                const newId = state.createNewGondola(name, aisle, category, description);
                 createGondolaModal.style.display = 'none';
                 setStoreState(state.currentStoreId);
                 setGondolaState(newId);
@@ -320,8 +351,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const id = editGondolaModal.dataset.gondolaId;
             const name = document.getElementById('edit-gondola-name').value.trim();
             const aisle = document.getElementById('edit-gondola-aisle').value.trim();
+            const categorySelect = document.getElementById('edit-gondola-category');
+            const category = categorySelect ? categorySelect.value : '';
+            const descInput = document.getElementById('edit-gondola-description');
+            const description = descInput ? descInput.value.trim() : '';
             if (name && id) {
-                state.renameGondola(id, name, aisle);
+                state.renameGondola(id, name, aisle, category, description);
                 editGondolaModal.style.display = 'none';
                 renderStoreDetails();
             } else {
@@ -429,7 +464,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                         <div style="flex: 1; min-width: 0;">
                             <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                                <h3 style="margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px;">${s.name}</h3>
+                                <h3 style="margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; min-width: 0;">${s.name}</h3>
                                 <div style="display: flex; align-items: center; gap: 4px;">
                                     <button class="btn-edit-store" title="Editar tienda" style="background:transparent; border:none; color:var(--text-muted); cursor:pointer; padding:2px; display:inline-flex; align-items:center; transition:color 0.2s;">
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -645,7 +680,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     const shelfColor = isPerchero ? '#475569' : tc.shelf;
                     const shelfTopColor = isPerchero ? '#64748b' : tc.shelfTop;
                     const shelfFrontColor = isPerchero ? '#334155' : tc.shelfFront;
-                    const miniShelfDepth = (isPerchero ? 2 : g.config.shelfDepth) * scaleMini;
+                    const currentShelfDepth = shelf.depth !== undefined ? shelf.depth : g.config.shelfDepth;
+                    const miniShelfDepth = (isPerchero ? 2 : currentShelfDepth) * scaleMini;
 
                     shelvesHtml += `
                         <div style="position: absolute; width: 100%; height: ${miniShelfThickness}px; bottom: ${miniShelfY}px; left: 0; background: ${shelfColor}; transform-style: preserve-3d;">
@@ -674,7 +710,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div style="flex: 1; display: flex; flex-direction: column; min-width: 0;">
                             <div>
                                 <div style="display:flex; justify-content:space-between; align-items:flex-start; gap: 6px;">
-                                    <h3 style="margin-bottom:2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 15px; font-weight: 700; color: var(--text); flex: 1;" title="${g.name}">${g.name}</h3>
+                                    <h3 style="margin-bottom:4px; font-size: 15px; font-weight: 700; color: var(--text); flex: 1; word-break: break-word; line-height: 1.3;" title="${g.name}">${g.name}</h3>
                                     <div style="display: flex; align-items: center; gap: 4px;">
                                         <button class="btn-edit-gondola-name" title="Editar góndola" style="background:transparent; border:none; color:var(--text-muted); cursor:pointer; padding:2px; display:inline-flex; align-items:center; transition:color 0.2s;">
                                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -703,6 +739,12 @@ document.addEventListener('DOMContentLoaded', () => {
                                     ${g.aisle}
                                 </span>
                                 ` : ''}
+                                ${g.category ? `
+                                <span class="pill-badge" style="color: #ec4899; background: rgba(236, 72, 153, 0.1); border-color: rgba(236, 72, 153, 0.15); padding: 3px 6px; font-size: 10px; font-weight: 700; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none;"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+                                    ${g.category}
+                                </span>
+                                ` : ''}
                             </div>
                         </div>
                     </div>
@@ -720,14 +762,26 @@ document.addEventListener('DOMContentLoaded', () => {
                     editModal.dataset.gondolaId = g.id;
                     document.getElementById('edit-gondola-name').value = g.name;
                     document.getElementById('edit-gondola-aisle').value = g.aisle || '';
+                    const categorySelect = document.getElementById('edit-gondola-category');
+                    if (categorySelect) {
+                        categorySelect.value = g.category || '';
+                    }
                     editModal.style.display = 'flex';
                     document.getElementById('edit-gondola-name').focus();
                 });
                 el.querySelector('.btn-delete-gondola').addEventListener('click', (e) => {
                     e.stopPropagation();
-                    if(confirm('¿Seguro que deseas eliminar esta góndola?')) {
-                        state.deleteGondola(g.id);
-                        renderStoreDetails();
+                    const deleteModal = document.getElementById('delete-gondola-confirm-modal');
+                    if (deleteModal) {
+                        const nameSpan = document.getElementById('delete-modal-gondola-name');
+                        if (nameSpan) nameSpan.innerText = g.name;
+                        deleteModal.dataset.gondolaId = g.id;
+                        deleteModal.style.display = 'flex';
+                    } else {
+                        if (confirm(`¿Seguro que deseas eliminar la góndola "${g.name}"?`)) {
+                            state.deleteGondola(g.id);
+                            renderStoreDetails();
+                        }
                     }
                 });
                 gondolaList.appendChild(el);
@@ -900,6 +954,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         g.shelves.forEach((shelf, idx) => {
             const isPerchero = shelf.type === 'perchero';
+            const currentShelfDepth = shelf.depth !== undefined ? shelf.depth : g.shelfDepth;
 
             // If it is a perchero level, render a dotted pegboard panel on the back panel at this height
             if (isPerchero) {
@@ -1017,7 +1072,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (totalHeight > usableHeight) {
                     hasHeightCollision = true;
                 }
-                if (maxDepth > g.shelfDepth) {
+                if (maxDepth > currentShelfDepth) {
                     hasDepthCollision = true;
                 }
             });
@@ -1136,13 +1191,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const top = document.createElement('div');
             top.className = 'shelf-top';
-            top.style.height = `${(isPerchero ? 2 : g.shelfDepth) * scale}px`;
+            top.style.height = `${(isPerchero ? 2 : currentShelfDepth) * scale}px`;
             top.style.background = isPerchero ? '#64748b' : tc.shelfTop;
             shelfEl.appendChild(top);
 
             const front = document.createElement('div');
             front.className = 'shelf-front';
-            front.style.transform = `translateZ(${(isPerchero ? 2 : g.shelfDepth) * scale}px)`;
+            front.style.transform = `translateZ(${(isPerchero ? 2 : currentShelfDepth) * scale}px)`;
             front.style.background = isPerchero ? '#334155' : tc.shelfFront;
             shelfEl.appendChild(front);
 
@@ -1178,7 +1233,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         background: linear-gradient(90deg, #94a3b8, #cbd5e1, #94a3b8);
                         transform: rotateY(-90deg);
                         transform-origin: left;
-                        width: ${g.shelfDepth * scale}px;
+                        width: ${currentShelfDepth * scale}px;
                         box-shadow: 0 3px 5px rgba(0,0,0,0.35);
                     `;
                     hook.appendChild(rod);
@@ -1186,7 +1241,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const tip = document.createElement('div');
                     tip.style.cssText = `
                         position: absolute;
-                        left: ${g.shelfDepth * scale}px;
+                        left: ${currentShelfDepth * scale}px;
                         bottom: 0;
                         width: 4px;
                         height: 8px;
@@ -1235,7 +1290,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     const dims = state.getPlacedDimensions(layer.productId, layer.orientation || 0);
 
-                    const unitsInZ = Math.floor(g.shelfDepth / dims.depth);
+                    const unitsInZ = Math.floor(currentShelfDepth / dims.depth);
                     const visualDepth = unitsInZ * dims.depth * scale;
                     
                     const layerEl = document.createElement('div');
@@ -1246,7 +1301,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     layerEl.style.height = `${dims.height * scale}px`;
                     layerEl.style.bottom = `${currentY * scale}px`;
                     layerEl.style.left = `0px`;
-                    layerEl.style.transform = `translateZ(${g.shelfDepth * scale - visualDepth}px)`;
+                    layerEl.style.transform = `translateZ(${currentShelfDepth * scale - visualDepth}px)`;
 
                     layerEl.addEventListener('dragstart', (e) => {
                         e.stopPropagation();
@@ -1400,25 +1455,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
         [...g.shelves].reverse().forEach(shelf => {
             const row = document.createElement('div');
-            row.style.cssText = 'display:flex; flex-direction:column; font-size:12px; background:rgba(255,255,255,0.02); padding:8px 10px; border-radius:6px; border:1px solid rgba(255,255,255,0.04); margin-bottom: 6px; gap: 4px;';
-            
+            row.style.cssText = 'display:flex; flex-direction:column; background:#ffffff; padding:12px; border-radius:8px; border:1px solid var(--border); margin-bottom: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); gap: 8px; transition: all 0.2s ease;';
+
             const controlGroup = document.createElement('div');
-            controlGroup.style.cssText = 'display:flex; flex-direction:column; width:100%; gap:4px;';
+            controlGroup.style.cssText = 'display:flex; flex-direction:column; width:100%; gap:8px;';
 
             const headerLine = document.createElement('div');
             headerLine.style.cssText = 'display:flex; justify-content:space-between; align-items:center;';
 
             const label = document.createElement('span');
             label.innerText = `Nivel ${shelf.index + 1}`;
-            label.style.fontWeight = '600';
-            
+            label.style.cssText = 'font-weight:600; font-size:13px; color:var(--text);';
+
             const select = document.createElement('select');
-            select.style.cssText = 'background:#0f172a; border:1px solid var(--border); color:white; border-radius:4px; padding:3px 6px; font-size:11px;';
+            select.style.cssText = 'background:var(--input-bg); border:1px solid var(--border); color:var(--text); border-radius:6px; padding:4px 8px; font-size:12px; font-weight:500; cursor:pointer; outline:none; transition: all 0.2s;';
             select.innerHTML = `
                 <option value="plancha" ${shelf.type === 'plancha' ? 'selected' : ''}>Plancha</option>
                 <option value="perchero" ${shelf.type === 'perchero' ? 'selected' : ''}>Perchero</option>
             `;
-            
+
+            select.addEventListener('focus', () => {
+                select.style.borderColor = 'var(--primary)';
+                select.style.boxShadow = '0 0 0 2px rgba(0, 150, 57, 0.1)';
+            });
+            select.addEventListener('blur', () => {
+                select.style.borderColor = 'var(--border)';
+                select.style.boxShadow = 'none';
+            });
+
             select.addEventListener('change', (e) => {
                 state.setShelfType(shelf.index, e.target.value);
             });
@@ -1427,41 +1491,129 @@ document.addEventListener('DOMContentLoaded', () => {
             headerLine.appendChild(select);
             controlGroup.appendChild(headerLine);
 
+            // CUSTOM GAP FIELD (Distancia al nivel anterior)
+            const gapLine = document.createElement('div');
+            gapLine.style.cssText = 'display:flex; justify-content:space-between; align-items:center; margin-top:4px; padding-top:6px; border-top:1px solid var(--border);';
+
+            const gapLabel = document.createElement('span');
+            gapLabel.style.cssText = 'font-size:11px; color:var(--text-muted); font-weight:500;';
+            const prevText = shelf.index === 0 ? 'Distancia a la base (cm):' : `Distancia al Nivel ${shelf.index} (cm):`;
+            gapLabel.innerText = prevText;
+
+            const prevY = shelf.index === 0 ? g.baseHeight : g.shelves[shelf.index - 1].y + g.shelfThickness;
+            const currentGap = Math.max(0, shelf.y - prevY);
+
+            const gapInput = document.createElement('input');
+            gapInput.type = 'number';
+            gapInput.min = '0';
+            gapInput.step = '1';
+            gapInput.value = Math.round(currentGap);
+            gapInput.style.cssText = 'width:65px; background:var(--input-bg); border:1px solid var(--border); color:var(--text); border-radius:6px; padding:4px 6px; font-size:12px; text-align:center; outline:none; transition: all 0.2s;';
+
+            gapInput.addEventListener('focus', () => {
+                gapInput.style.borderColor = 'var(--primary)';
+                gapInput.style.boxShadow = '0 0 0 2px rgba(0, 150, 57, 0.1)';
+            });
+            gapInput.addEventListener('blur', () => {
+                gapInput.style.borderColor = 'var(--border)';
+                gapInput.style.boxShadow = 'none';
+            });
+
+            gapInput.addEventListener('change', (e) => {
+                const newGap = parseFloat(e.target.value);
+                if (isNaN(newGap) || newGap < 0) {
+                    gapInput.value = Math.round(currentGap);
+                    return;
+                }
+                state.setShelfGap(shelf.index, newGap);
+            });
+
+            gapLine.appendChild(gapLabel);
+            gapLine.appendChild(gapInput);
+            controlGroup.appendChild(gapLine);
+
+            // DEPTH FIELD (Profundidad del nivel)
+            const depthLine = document.createElement('div');
+            depthLine.style.cssText = 'display:flex; justify-content:space-between; align-items:center; margin-top:4px; padding-top:6px; border-top:1px solid var(--border);';
+
+            const depthLabel = document.createElement('span');
+            depthLabel.style.cssText = 'font-size:11px; color:var(--text-muted); font-weight:500;';
+            depthLabel.innerText = 'Profundidad (cm):';
+
+            const currentDepth = shelf.depth !== undefined ? shelf.depth : g.shelfDepth;
+
+            const depthInput = document.createElement('input');
+            depthInput.type = 'number';
+            depthInput.min = '5';
+            depthInput.max = '200';
+            depthInput.step = '1';
+            depthInput.value = Math.round(currentDepth);
+            depthInput.style.cssText = 'width:65px; background:var(--input-bg); border:1px solid var(--border); color:var(--text); border-radius:6px; padding:4px 6px; font-size:12px; text-align:center; outline:none; transition: all 0.2s;';
+
+            depthInput.addEventListener('focus', () => {
+                depthInput.style.borderColor = 'var(--primary)';
+                depthInput.style.boxShadow = '0 0 0 2px rgba(0, 150, 57, 0.1)';
+            });
+            depthInput.addEventListener('blur', () => {
+                depthInput.style.borderColor = 'var(--border)';
+                depthInput.style.boxShadow = 'none';
+            });
+
+            depthInput.addEventListener('change', (e) => {
+                const newDepth = parseFloat(e.target.value);
+                if (isNaN(newDepth) || newDepth < 5) {
+                    depthInput.value = Math.round(currentDepth);
+                    return;
+                }
+                state.setShelfDepth(shelf.index, newDepth);
+            });
+
+            depthLine.appendChild(depthLabel);
+            depthLine.appendChild(depthInput);
+            controlGroup.appendChild(depthLine);
+
+            // HOOK SPACING FIELD (Input number instead of range slider)
             if (shelf.type === 'perchero') {
                 const sliderLine = document.createElement('div');
-                sliderLine.style.cssText = 'display:flex; justify-content:space-between; align-items:center; margin-top:4px; padding-top:4px; border-top:1px solid rgba(255,255,255,0.05);';
-                
+                sliderLine.style.cssText = 'display:flex; justify-content:space-between; align-items:center; margin-top:4px; padding-top:6px; border-top:1px solid var(--border);';
+
                 const sliderLabel = document.createElement('span');
-                sliderLabel.style.cssText = 'font-size:10px; color:var(--text-muted); font-weight: 500;';
-                sliderLabel.innerText = `Separación: ${shelf.hookSpacing || 15}cm`;
-                
-                const slider = document.createElement('input');
-                slider.type = 'range';
-                slider.min = '10';
-                slider.max = '30';
-                slider.step = '5';
-                slider.value = shelf.hookSpacing || 15;
-                slider.style.cssText = 'width:90px; height:4px; accent-color:#009639; cursor:pointer;';
-                
-                slider.addEventListener('input', (e) => {
-                    const val = e.target.value;
-                    sliderLabel.innerText = `Separación: ${val}cm`;
+                sliderLabel.style.cssText = 'font-size:11px; color:var(--text-muted); font-weight:500;';
+                sliderLabel.innerText = `Separación Ganchos (cm):`;
+
+                const spacingInput = document.createElement('input');
+                spacingInput.type = 'number';
+                spacingInput.min = '5';
+                spacingInput.max = '50';
+                spacingInput.value = shelf.hookSpacing || 15;
+                spacingInput.style.cssText = 'width:65px; background:var(--input-bg); border:1px solid var(--border); color:var(--text); border-radius:6px; padding:4px 6px; font-size:12px; text-align:center; outline:none; transition: all 0.2s;';
+
+                spacingInput.addEventListener('focus', () => {
+                    spacingInput.style.borderColor = 'var(--primary)';
+                    spacingInput.style.boxShadow = '0 0 0 2px rgba(0, 150, 57, 0.1)';
                 });
-                
-                slider.addEventListener('change', (e) => {
+                spacingInput.addEventListener('blur', () => {
+                    spacingInput.style.borderColor = 'var(--border)';
+                    spacingInput.style.boxShadow = 'none';
+                });
+
+                spacingInput.addEventListener('change', (e) => {
                     const proposed = parseFloat(e.target.value);
+                    if (isNaN(proposed) || proposed <= 0) {
+                        spacingInput.value = shelf.hookSpacing || 15;
+                        return;
+                    }
                     const check = state.checkHookSpacingOverlap(shelf.index, proposed);
                     if (!check.valid) {
                         alert(`⚠️ Imposible reducir separación:\n\n${check.reason}`);
-                        e.target.value = shelf.hookSpacing || 15;
-                        sliderLabel.innerText = `Separación: ${shelf.hookSpacing || 15}cm`;
+                        spacingInput.value = shelf.hookSpacing || 15;
                         return;
                     }
                     state.setShelfHookSpacing(shelf.index, proposed);
                 });
-                
+
                 sliderLine.appendChild(sliderLabel);
-                sliderLine.appendChild(slider);
+                sliderLine.appendChild(spacingInput);
                 controlGroup.appendChild(sliderLine);
             }
 
@@ -1821,7 +1973,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (!product) return;
                         
                         const dims = state.getPlacedDimensions(layer.productId, layer.orientation || 0);
-                        const unitsInZ = Math.floor(g.config.shelfDepth / dims.depth);
+                        const currentShelfDepth = s.depth !== undefined ? s.depth : g.config.shelfDepth;
+                        const unitsInZ = Math.floor(currentShelfDepth / dims.depth);
                         const totalUnits = layer.facings * unitsInZ;
                         
                         let existing = shelfProducts.find(x => x.sku === product.sku);
@@ -1958,7 +2111,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             const dims = state.getPlacedDimensions(layer.productId, layer.orientation || 0);
                             if (!dims || !dims.depth || dims.depth <= 0) return;
                             
-                            const unitsInZ = Math.floor(g.config.shelfDepth / dims.depth);
+                            const currentShelfDepth = s.depth !== undefined ? s.depth : g.config.shelfDepth;
+                            const unitsInZ = Math.floor(currentShelfDepth / dims.depth);
                             const totalUnits = (layer.facings || 1) * unitsInZ;
                             
                             let existing = shelfProducts.find(x => x.sku === product.sku);
@@ -2163,7 +2317,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             const dims = state.getPlacedDimensions(layer.productId, layer.orientation || 0);
                             if (!dims || !dims.depth || dims.depth <= 0) return;
                             
-                            const unitsInZ = Math.floor(g.config.shelfDepth / dims.depth);
+                            const currentShelfDepth = s.depth !== undefined ? s.depth : g.config.shelfDepth;
+                            const unitsInZ = Math.floor(currentShelfDepth / dims.depth);
                             const totalUnits = (layer.facings || 1) * unitsInZ;
 
                             let existing = shelfProducts.find(x => x.sku === product.sku);
@@ -2444,7 +2599,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (!product) return;
 
                         const dims = state.getPlacedDimensions(layer.productId, layer.orientation || 0);
-                        const unitsInZ = Math.floor(g.config.shelfDepth / dims.depth);
+                        const currentShelfDepth = s.depth !== undefined ? s.depth : g.config.shelfDepth;
+                        const unitsInZ = Math.floor(currentShelfDepth / dims.depth);
                         const totalUnits = layer.facings * unitsInZ;
 
                         let existing = shelfProducts.find(x => x.sku === product.sku);
@@ -2703,7 +2859,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         const dims = state.getPlacedDimensions(layer.productId, layer.orientation || 0);
                         if (!dims || !dims.depth || dims.depth <= 0) return;
 
-                        const unitsInZ = Math.floor(state.gondola.shelfDepth / dims.depth);
+                        const currentShelfDepth = s.depth !== undefined ? s.depth : state.gondola.shelfDepth;
+                        const unitsInZ = Math.floor(currentShelfDepth / dims.depth);
                         const totalUnits = (layer.facings || 1) * unitsInZ;
                         
                         let existing = shelfProducts.find(x => x.sku === product.sku);
@@ -2794,7 +2951,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (!product) return;
 
                     const dims = state.getPlacedDimensions(layer.productId, layer.orientation || 0);
-                    const unitsInZ = Math.floor(gondola.shelfDepth / dims.depth);
+                    const currentShelfDepth = shelf.depth !== undefined ? shelf.depth : gondola.shelfDepth;
+                    const unitsInZ = Math.floor(currentShelfDepth / dims.depth);
                     const totalUnits = layer.facings * unitsInZ;
 
                     if (!summary[product.sku]) {
@@ -2843,7 +3001,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (!product) return;
 
                         const dims = state.getPlacedDimensions(layer.productId, layer.orientation || 0);
-                        const unitsInZ = Math.floor(gondola.config.shelfDepth / dims.depth);
+                        const currentShelfDepth = shelf.depth !== undefined ? shelf.depth : gondola.config.shelfDepth;
+                        const unitsInZ = Math.floor(currentShelfDepth / dims.depth);
                         const totalUnits = layer.facings * unitsInZ;
 
                         if (!summary[product.sku]) {
@@ -2869,17 +3028,36 @@ document.addEventListener('DOMContentLoaded', () => {
         return { rows: Object.values(summary), grandTotalUnits, grandTotalValue, uniqueSkusCount: uniqueSkus.size };
     }
 
-    function downloadExcelWorkbook(sheetName, rows, filename, storeName = '') {
+    function downloadExcelWorkbook(sheetName, rows, filename, metadata = '') {
         if (typeof window.XLSX === 'undefined') {
             alert('Falta la librería XLSX en la página.');
             return;
         }
         const header = ['SKU', 'Nombre', 'Categoría', 'Cantidad', 'Precio Unitario', 'Valor Total'];
-        const aoa = [
-            [`Tienda: ${storeName}`],
-            [],
-            header
-        ];
+        
+        let aoa = [];
+        if (typeof metadata === 'object' && metadata !== null) {
+            aoa = [
+                ['REPORTE DE PLANOGRAMA'],
+                [`Tienda: ${metadata.storeName || ''}`],
+                [`Góndola: ${metadata.gondolaName || ''} (${(metadata.type || 'Pared').toUpperCase()})`],
+                [`Dimensiones: ${metadata.dimensions || ''}`],
+                [`Categoría: ${metadata.category || 'N/A'}  |  Pasillo: ${metadata.aisle || 'N/A'}`],
+                [`Información Adicional: ${metadata.description || 'N/A'}`],
+                [`Fecha de Generación: ${metadata.date || ''}`],
+                [],
+                header
+            ];
+        } else {
+            aoa = [
+                ['REPORTE CONSOLIDADO DE TIENDA'],
+                [`Tienda: ${metadata || ''}`],
+                [`Fecha de Generación: ${new Date().toLocaleString()}`],
+                [],
+                header
+            ];
+        }
+        
         rows.forEach(row => aoa.push([row.sku, row.name, row.category || '', row.units, row.price, row.totalValue]));
 
         const totals = rows.reduce((acc, item) => {
@@ -2905,7 +3083,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         const activeStore = state.stores.find(s => s.id === state.currentStoreId);
         const storeName = activeStore ? activeStore.name : '';
-        downloadExcelWorkbook('Góndola', summary.rows, `Reporte_Planograma_${(state.gondola.type || 'gondola').replace(/\s+/g, '_')}`, storeName);
+        const activeGondolaObj = state.library.find(p => p.id === state.currentGondolaId);
+        const gondolaName = activeGondolaObj ? activeGondolaObj.name : 'Góndola';
+        const category = activeGondolaObj ? (activeGondolaObj.category || 'N/A') : 'N/A';
+        const aisle = activeGondolaObj ? (activeGondolaObj.aisle || 'N/A') : 'N/A';
+        const description = activeGondolaObj ? (activeGondolaObj.description || 'N/A') : 'N/A';
+        
+        const metadata = {
+            storeName,
+            gondolaName,
+            type: state.gondola.type || 'Pared',
+            dimensions: `${state.gondola.width || 0}x${state.gondola.height || 0}x${state.gondola.shelfDepth || 0} cm`,
+            category,
+            aisle,
+            description,
+            date: new Date().toLocaleString()
+        };
+        downloadExcelWorkbook('Góndola', summary.rows, `Reporte_Planograma_${gondolaName.replace(/\s+/g, '_')}`, metadata);
     }
 
     function downloadStoreExcel(store, filename) {
@@ -3280,18 +3474,33 @@ document.addEventListener('DOMContentLoaded', () => {
         doc.setFillColor(0, 150, 57);
         doc.rect(0, 0, 595, 15, 'F');
 
-        doc.setFontSize(22);
+        doc.setFontSize(20);
         doc.setTextColor(0, 150, 57); // Locatel Green
-        doc.text('REPORTE DE PLANOGRAMA', 40, 45);
+        doc.text('REPORTE DE PLANOGRAMA', 40, 42);
         const activeStore = state.stores.find(s => s.id === state.currentStoreId);
         const storeName = activeStore ? activeStore.name : 'Tienda';
-        doc.setFontSize(12);
-        doc.setTextColor(100, 100, 100);
-        doc.text(`Tienda: ${storeName}`, 40, 62);
+        doc.setFontSize(10);
+        doc.setTextColor(80, 80, 80);
+        doc.text(`Tienda: ${storeName}`, 40, 60);
         
-        doc.setFontSize(9);
-        doc.setTextColor(100, 100, 100);
-        doc.text(`Mueble: ${gondolaName} (${(state.gondola.type || 'Pared').toUpperCase()}) | Dim: ${state.gondola.width || 0}x${state.gondola.height || 0}x${state.gondola.shelfDepth || 0} cm | Fecha: ${new Date().toLocaleString()}`, 40, 80);
+        let metaParts = [];
+        metaParts.push(`Mueble: ${gondolaName}`);
+        metaParts.push(`Tipo: ${(state.gondola.type || 'Pared').toUpperCase()}`);
+        if (activeGondola && activeGondola.category) {
+            metaParts.push(`Categoría: ${activeGondola.category}`);
+        }
+        if (activeGondola && activeGondola.aisle) {
+            metaParts.push(`Pasillo/Ubicación: ${activeGondola.aisle}`);
+        }
+        doc.text(metaParts.join('  |  '), 40, 75);
+
+        let secondMetaParts = [];
+        secondMetaParts.push(`Dimensiones: ${state.gondola.width || 0}x${state.gondola.height || 0}x${state.gondola.shelfDepth || 0} cm`);
+        secondMetaParts.push(`Fecha: ${new Date().toLocaleString()}`);
+        if (activeGondola && activeGondola.description) {
+            secondMetaParts.push(`Información Adicional: ${activeGondola.description}`);
+        }
+        doc.text(secondMetaParts.join('  |  '), 40, 90);
         
         // Add 2D Planogram Image
         const planogramImgData = generateGondola2DImage();
@@ -3305,7 +3514,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let finalW = displayW;
         let finalH = (canvasH / 800) * finalW;
         
-        const maxImageH = 665; // 842 - 85 - 40 - 52
+        const maxImageH = 600; // 842 - 110 - 40 - 52
         if (finalH > maxImageH) {
             finalH = maxImageH;
             finalW = (800 / canvasH) * finalH;
@@ -3313,7 +3522,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Centered position inside the remaining area
         const imgX = 40 + (displayW - finalW) / 2;
-        const imgY = 85 + (665 - finalH) / 2;
+        const imgY = 110 + (600 - finalH) / 2;
         doc.addImage(planogramImgData, 'JPEG', imgX, imgY, finalW, finalH);
 
         // Add Page 2 for Detailed Table (Portrait)

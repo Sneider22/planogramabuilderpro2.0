@@ -58,6 +58,10 @@ document.addEventListener('DOMContentLoaded', () => {
         btnCreateGondola.addEventListener('click', () => {
             document.getElementById('new-gondola-name').value = '';
             document.getElementById('new-gondola-aisle').value = '';
+            const cat = document.getElementById('new-gondola-category');
+            if (cat) cat.value = '';
+            const desc = document.getElementById('new-gondola-description');
+            if (desc) desc.value = '';
             createGondolaModal.style.display = 'flex';
             document.getElementById('new-gondola-name').focus();
         });
@@ -73,8 +77,12 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-confirm-create-gondola').addEventListener('click', () => {
         const name = document.getElementById('new-gondola-name').value.trim();
         const aisle = document.getElementById('new-gondola-aisle').value.trim();
+        const categorySelect = document.getElementById('new-gondola-category');
+        const category = categorySelect ? categorySelect.value : '';
+        const descInput = document.getElementById('new-gondola-description');
+        const description = descInput ? descInput.value.trim() : '';
         if (name) {
-            state.createNewGondola(name, aisle);
+            state.createNewGondola(name, aisle, category, description);
             createGondolaModal.style.display = 'none';
             renderStoreDetails();
         } else {
@@ -94,8 +102,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const id = editGondolaModal.dataset.gondolaId;
         const name = document.getElementById('edit-gondola-name').value.trim();
         const aisle = document.getElementById('edit-gondola-aisle').value.trim();
+        const categorySelect = document.getElementById('edit-gondola-category');
+        const category = categorySelect ? categorySelect.value : '';
+        const descInput = document.getElementById('edit-gondola-description');
+        const description = descInput ? descInput.value.trim() : '';
         if (name && id) {
-            state.renameGondola(id, name, aisle);
+            state.renameGondola(id, name, aisle, category, description);
             editGondolaModal.style.display = 'none';
             renderStoreDetails();
         } else {
@@ -125,6 +137,30 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     });
+
+    // --- Delete Gondola Confirmation Modal ---
+    const deleteGondolaConfirmModal = document.getElementById('delete-gondola-confirm-modal');
+    if (deleteGondolaConfirmModal) {
+        document.getElementById('btn-cancel-delete-gondola-modal').addEventListener('click', () => {
+            deleteGondolaConfirmModal.style.display = 'none';
+        });
+        document.getElementById('btn-close-delete-gondola-modal-x').addEventListener('click', () => {
+            deleteGondolaConfirmModal.style.display = 'none';
+        });
+        document.getElementById('btn-confirm-delete-gondola').addEventListener('click', () => {
+            const gondolaId = deleteGondolaConfirmModal.dataset.gondolaId;
+            if (gondolaId) {
+                state.deleteGondola(gondolaId);
+                deleteGondolaConfirmModal.style.display = 'none';
+                renderStoreDetails();
+            }
+        });
+        deleteGondolaConfirmModal.addEventListener('click', (e) => {
+            if (e.target === deleteGondolaConfirmModal) {
+                deleteGondolaConfirmModal.style.display = 'none';
+            }
+        });
+    }
 
     // --- Render Gondolas ---
     function renderStoreDetails() {
@@ -212,7 +248,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                     if (product) {
                                         const dims = state.getPlacedDimensions(layer.productId, layer.orientation || 0);
                                         if (dims && dims.depth > 0) {
-                                            totalUnits += (layer.facings || 1) * Math.floor(g.config.shelfDepth / dims.depth);
+                                            const shelfDepth = shelf.depth !== undefined ? shelf.depth : g.config.shelfDepth;
+                                            totalUnits += (layer.facings || 1) * Math.floor(shelfDepth / dims.depth);
                                         }
                                     }
                                 });
@@ -265,7 +302,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     const shelfColor = isPerchero ? '#475569' : tc.shelf;
                     const shelfTopColor = isPerchero ? '#64748b' : tc.shelfTop;
                     const shelfFrontColor = isPerchero ? '#334155' : tc.shelfFront;
-                    const miniShelfDepth = (isPerchero ? 2 : g.config.shelfDepth) * scaleMini;
+                    const currentShelfDepth = shelf.depth !== undefined ? shelf.depth : g.config.shelfDepth;
+                    const miniShelfDepth = (isPerchero ? 2 : currentShelfDepth) * scaleMini;
 
                     shelvesHtml += `
                         <div style="position: absolute; width: 100%; height: ${miniShelfThickness}px; bottom: ${miniShelfY}px; left: 0; background: ${shelfColor}; transform-style: preserve-3d;">
@@ -294,7 +332,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div style="flex: 1; display: flex; flex-direction: column; min-width: 0;">
                             <div>
                                 <div style="display:flex; justify-content:space-between; align-items:flex-start; gap: 6px;">
-                                    <h3 style="margin-bottom:2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 15px; font-weight: 700; color: var(--text); flex: 1;" title="${g.name}">${g.name}</h3>
+                                    <h3 style="margin-bottom:4px; font-size: 15px; font-weight: 700; color: var(--text); flex: 1; word-break: break-word; line-height: 1.3;" title="${g.name}">${g.name}</h3>
                                     <div style="display: flex; align-items: center; gap: 4px;">
                                         <button class="btn-edit-gondola-name" title="Editar góndola" style="background:transparent; border:none; color:var(--text-muted); cursor:pointer; padding:2px; display:inline-flex; align-items:center; transition:color 0.2s;">
                                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -308,6 +346,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     </div>
                                 </div>
                                 <p style="font-size:11px; color: var(--text-muted); font-weight: 600; margin-bottom: 8px;">${g.config.width}x${g.config.height}x${g.config.depth} cm</p>
+                                ${g.description ? `<p style="font-size:12px; color: var(--text-muted); font-style: italic; margin-bottom: 8px; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 4px;" title="${g.description}"><span>📝</span> <span style="overflow: hidden; text-overflow: ellipsis;">${g.description}</span></p>` : ''}
                             </div>
                             <div class="meta" style="margin-bottom: 0; display:flex; gap:6px; flex-wrap: wrap;">
                                 <span class="pill-badge" style="color: #10b981; background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.15); padding: 3px 6px; font-size: 10px; font-weight: 700; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
@@ -321,6 +360,12 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <span class="pill-badge" style="color: #6366f1; background: rgba(99, 102, 241, 0.1); border-color: rgba(99, 102, 241, 0.15); padding: 3px 6px; font-size: 10px; font-weight: 700; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
                                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
                                     ${g.aisle}
+                                </span>
+                                ` : ''}
+                                ${g.category ? `
+                                <span class="pill-badge" style="color: #ec4899; background: rgba(236, 72, 153, 0.1); border-color: rgba(236, 72, 153, 0.15); padding: 3px 6px; font-size: 10px; font-weight: 700; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none;"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+                                    ${g.category}
                                 </span>
                                 ` : ''}
                             </div>
@@ -341,15 +386,31 @@ document.addEventListener('DOMContentLoaded', () => {
                     editGondolaModal.dataset.gondolaId = g.id;
                     document.getElementById('edit-gondola-name').value = g.name;
                     document.getElementById('edit-gondola-aisle').value = g.aisle || '';
+                    const categorySelect = document.getElementById('edit-gondola-category');
+                    if (categorySelect) {
+                        categorySelect.value = g.category || '';
+                    }
+                    const descSelect = document.getElementById('edit-gondola-description');
+                    if (descSelect) {
+                        descSelect.value = g.description || '';
+                    }
                     editGondolaModal.style.display = 'flex';
                     document.getElementById('edit-gondola-name').focus();
                 });
 
                 el.querySelector('.btn-delete-gondola').addEventListener('click', (e) => {
                     e.stopPropagation();
-                    if (confirm('¿Seguro que deseas eliminar esta góndola?')) {
-                        state.deleteGondola(g.id);
-                        renderStoreDetails();
+                    const deleteModal = document.getElementById('delete-gondola-confirm-modal');
+                    if (deleteModal) {
+                        const nameSpan = document.getElementById('delete-modal-gondola-name');
+                        if (nameSpan) nameSpan.innerText = g.name;
+                        deleteModal.dataset.gondolaId = g.id;
+                        deleteModal.style.display = 'flex';
+                    } else {
+                        if (confirm(`¿Seguro que deseas eliminar la góndola "${g.name}"?`)) {
+                            state.deleteGondola(g.id);
+                            renderStoreDetails();
+                        }
                     }
                 });
 
@@ -405,7 +466,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             const dims = state.getPlacedDimensions(layer.productId, layer.orientation || 0);
                             if (!dims || !dims.depth || dims.depth <= 0) return;
                             
-                            const unitsInZ = Math.floor(g.config.shelfDepth / dims.depth);
+                            const currentShelfDepth = s.depth !== undefined ? s.depth : g.config.shelfDepth;
+                            const unitsInZ = Math.floor(currentShelfDepth / dims.depth);
                             const totalUnits = (layer.facings || 1) * unitsInZ;
 
                             let existing = shelfProducts.find(x => x.sku === product.sku);
@@ -934,8 +996,15 @@ document.addEventListener('DOMContentLoaded', () => {
             doc.setFontSize(9);
             doc.setTextColor(100, 100, 100);
             doc.setFont('helvetica', 'normal');
-            doc.text(`Tienda: ${storeData.name.toUpperCase()} | Góndola ${gIdx + 1}: ${g.name.toUpperCase()} (${(g.config.type || 'pared').toUpperCase()})`, 40, 60);
-            doc.text(`Dimensiones: ${g.config.width}x${g.config.height}x${g.config.depth} cm | Fecha: ${new Date().toLocaleString()}`, 40, 72);
+            
+            let subtitle = `Tienda: ${storeData.name.toUpperCase()} | Góndola ${gIdx + 1}: ${g.name.toUpperCase()} (${(g.config.type || 'pared').toUpperCase()})`;
+            if (g.category) subtitle += ` | Cat: ${g.category}`;
+            if (g.aisle) subtitle += ` | Pasillo: ${g.aisle}`;
+            doc.text(subtitle, 40, 60);
+            
+            let extraInfo = `Dimensiones: ${g.config.width}x${g.config.height}x${g.config.depth} cm | Fecha: ${new Date().toLocaleString()}`;
+            if (g.description) extraInfo += ` | Info: ${g.description}`;
+            doc.text(extraInfo, 40, 72);
 
             try {
                 const planogramImgData = generateGondola2DImage(g);
@@ -982,7 +1051,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (!product) return;
 
                         const dims = state.getPlacedDimensions(layer.productId, layer.orientation || 0);
-                        const unitsInZ = Math.floor(g.config.shelfDepth / dims.depth);
+                        const currentShelfDepth = s.depth !== undefined ? s.depth : g.config.shelfDepth;
+                        const unitsInZ = Math.floor(currentShelfDepth / dims.depth);
                         const totalUnits = layer.facings * unitsInZ;
 
                         let existing = shelfProducts.find(x => x.sku === product.sku);
@@ -1064,7 +1134,12 @@ document.addEventListener('DOMContentLoaded', () => {
             doc.setFontSize(9);
             doc.setTextColor(100, 100, 100);
             doc.setFont('helvetica', 'normal');
-            doc.text(`Tienda: ${storeData.name.toUpperCase()} | Góndola ${gIdx + 1}: ${g.name.toUpperCase()} (${(g.config.type || 'pared').toUpperCase()})`, 40, 60);
+            
+            let subtitleTable = `Tienda: ${storeData.name.toUpperCase()} | Góndola ${gIdx + 1}: ${g.name.toUpperCase()} (${(g.config.type || 'pared').toUpperCase()})`;
+            if (g.category) subtitleTable += ` | Cat: ${g.category}`;
+            if (g.aisle) subtitleTable += ` | Pasillo: ${g.aisle}`;
+            if (g.description) subtitleTable += ` | Info: ${g.description}`;
+            doc.text(subtitleTable, 40, 60);
 
             doc.autoTable({
                 head: tableHead,
@@ -1206,7 +1281,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (!product) return;
 
                         const dims = state.getPlacedDimensions(layer.productId, layer.orientation || 0);
-                        const unitsInZ = Math.floor(gondola.config.shelfDepth / dims.depth);
+                        const currentShelfDepth = shelf.depth !== undefined ? shelf.depth : gondola.config.shelfDepth;
+                        const unitsInZ = Math.floor(currentShelfDepth / dims.depth);
                         const totalUnits = layer.facings * unitsInZ;
 
                         if (!summary[product.sku]) {
@@ -1241,17 +1317,36 @@ document.addEventListener('DOMContentLoaded', () => {
         downloadExcelWorkbook('Tienda', summary.rows, filename, storeData.name || '');
     }
 
-    function downloadExcelWorkbook(sheetName, rows, filename, storeName = '') {
+    function downloadExcelWorkbook(sheetName, rows, filename, metadata = '') {
         if (typeof window.XLSX === 'undefined') {
             alert('Falta la librería XLSX en la página.');
             return;
         }
         const header = ['SKU', 'Nombre', 'Categoría', 'Cantidad', 'Precio Unitario', 'Valor Total'];
-        const aoa = [
-            [`Tienda: ${storeName}`],
-            [],
-            header
-        ];
+        
+        let aoa = [];
+        if (typeof metadata === 'object' && metadata !== null) {
+            aoa = [
+                ['REPORTE DE PLANOGRAMA'],
+                [`Tienda: ${metadata.storeName || ''}`],
+                [`Góndola: ${metadata.gondolaName || ''} (${(metadata.type || 'Pared').toUpperCase()})`],
+                [`Dimensiones: ${metadata.dimensions || ''}`],
+                [`Categoría: ${metadata.category || 'N/A'}  |  Pasillo: ${metadata.aisle || 'N/A'}`],
+                [`Información Adicional: ${metadata.description || 'N/A'}`],
+                [`Fecha de Generación: ${metadata.date || ''}`],
+                [],
+                header
+            ];
+        } else {
+            aoa = [
+                ['REPORTE CONSOLIDADO DE TIENDA'],
+                [`Tienda: ${metadata || ''}`],
+                [`Fecha de Generación: ${new Date().toLocaleString()}`],
+                [],
+                header
+            ];
+        }
+        
         rows.forEach(row => aoa.push([row.sku, row.name, row.category || '', row.units, row.price, row.totalValue]));
 
         const totals = rows.reduce((acc, item) => {

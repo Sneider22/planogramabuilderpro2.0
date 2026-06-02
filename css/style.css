@@ -3,15 +3,22 @@
    ============================================ */
 
 :root {
-    --primary: #009639; /* Locatel Green */
+    --primary: #009639;
+    /* Locatel Green */
     --primary-hover: #008030;
     --primary-light: #e6f4ea;
-    --accent-orange: #ffb81c; /* Locatel Orange/Yellow */
-    --bg-dark: #f3f4f6; /* Light gray body background */
-    --card-bg: #ffffff; /* White card background */
-    --border: #e5e7eb; /* Light border */
-    --text: #1f2937; /* Dark slate text */
-    --text-muted: #6b7280; /* Gray text */
+    --accent-orange: #ffb81c;
+    /* Locatel Orange/Yellow */
+    --bg-dark: #f3f4f6;
+    /* Light gray body background */
+    --card-bg: #ffffff;
+    /* White card background */
+    --border: #e5e7eb;
+    /* Light border */
+    --text: #1f2937;
+    /* Dark slate text */
+    --text-muted: #6b7280;
+    /* Gray text */
     --input-bg: #ffffff;
 }
 
@@ -124,6 +131,7 @@ header {
     font-size: 13px;
     transition: border-color 0.2s, box-shadow 0.2s;
 }
+
 .field input:focus {
     outline: none;
     border-color: var(--primary);
@@ -132,15 +140,15 @@ header {
 
 /* Main Viewport (3D Area) */
 .viewport {
-    padding: 80px 40px;
+    padding: 80px 150px;
     display: flex;
     align-items: flex-start;
-    justify-content: center;
+    justify-content: flex-start;
     perspective: 1200px;
     background: radial-gradient(circle at center, #ffffff 0%, #f3f4f6 100%);
     position: relative;
     overflow-y: auto;
-    overflow-x: hidden;
+    overflow-x: auto;
 }
 
 /* 3D Gondola */
@@ -150,6 +158,12 @@ header {
     transform: rotateX(-10deg) rotateY(-20deg);
     transition: transform 0.1s ease-out;
     margin-bottom: 40px;
+    display: flex;
+    flex-direction: row;
+    gap: 80px;
+    align-items: flex-end;
+    justify-content: flex-start;
+    margin: 0 auto;
 }
 
 .gondola-back-panel {
@@ -168,6 +182,12 @@ header {
     border: 1px solid rgba(255, 255, 255, 0.05);
     cursor: default;
     transform-origin: bottom;
+    z-index: 10;
+    transition: z-index 0.1s ease;
+}
+
+.shelf-3d:hover {
+    z-index: 9999 !important;
 }
 
 /* Sides of the shelf to give volume */
@@ -194,6 +214,11 @@ header {
     position: absolute;
     transform-style: preserve-3d;
     transition: all 0.2s;
+    z-index: 2;
+}
+
+.placed-product:hover {
+    z-index: 99999 !important;
 }
 
 .product-box {
@@ -340,57 +365,80 @@ header {
 /* Glassmorphic Interactive Hover Card - 3D Perspective Card */
 .product-hover-card {
     position: absolute;
-    bottom: calc(100% + 12px); /* Default: above the product */
+    bottom: calc(100% + 12px);
+    /* Default: above the product */
     left: 50%;
-    transform: translateX(-50%) translateY(10px) scale(0.85) translateZ(var(--badge-z, 50px));
-    width: 265px; /* Large, premium width */
-    background: rgba(15, 23, 42, 0.92); /* Highly opaque premium dark glass */
+    transform: translateX(-50%) translateY(10px) scale(0.85) translateZ(var(--badge-z, 150px));
+    width: 265px;
+    /* Large, premium width */
+    background: rgba(15, 23, 42, 0.92);
+    /* Highly opaque premium dark glass */
     backdrop-filter: blur(12px) saturate(180%);
     -webkit-backdrop-filter: blur(12px) saturate(180%);
     border: 1px solid rgba(255, 255, 255, 0.18);
     border-radius: 12px;
-    padding: 10px 12px; /* Comfortable padding */
-    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6), 
-                inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    padding: 10px 12px;
+    /* Comfortable padding */
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
     color: #ffffff;
     display: flex;
     gap: 12px;
     align-items: center;
     opacity: 0;
-    pointer-events: none; /* Never blocks click-throughs or dragging */
-    transition: opacity 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
-                transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    z-index: 1000;
+    pointer-events: none;
+    /* Never blocks click-throughs or dragging */
+    transition: opacity 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+        transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 999999 !important; /* Ensure high priority */
     text-align: left;
+
+    /* Hardware acceleration & anti-blur fixes for 3D contexts */
+    will-change: transform, opacity;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-font-smoothing: subpixel-antialiased;
+}
+
+.hover-card-sku,
+.hover-card-name,
+.hover-card-stat,
+.hover-card-price-row {
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-font-smoothing: subpixel-antialiased;
 }
 
 .product-hover-card.flip-down {
     bottom: auto;
-    top: calc(100% + 12px); /* Flips below the product */
-    transform: translateX(-50%) translateY(-10px) scale(0.85) translateZ(var(--badge-z, 50px));
+    top: calc(100% + 12px);
+    /* Flips below the product */
+    transform: translateX(-50%) translateY(-10px) scale(0.85) translateZ(var(--badge-z, 150px));
 }
 
 .placed-product:hover .product-hover-card {
     opacity: 1;
-    transform: translateX(-50%) translateY(0) scale(1) translateZ(var(--badge-z, 50px));
+    transform: translateX(-50%) translateY(0) scale(1) translateZ(350px) !important;
 }
 
 .placed-product:hover .product-hover-card.flip-down {
     opacity: 1;
-    transform: translateX(-50%) translateY(0) scale(1) translateZ(var(--badge-z, 50px));
+    transform: translateX(-50%) translateY(0) scale(1) translateZ(350px) !important;
 }
 
 /* Glassmorphic card thumbnail/representation */
 .hover-card-thumb {
-    width: 52px; /* Generous visual representation */
-    height: 68px; /* Generous visual representation */
+    width: 52px;
+    /* Generous visual representation */
+    height: 68px;
+    /* Generous visual representation */
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3), 
-                inset 0 0 12px rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3),
+        inset 0 0 12px rgba(255, 255, 255, 0.2);
     border: 1px solid rgba(255, 255, 255, 0.1);
     overflow: hidden;
     flex-shrink: 0;
@@ -410,7 +458,8 @@ header {
 .hover-card-thumb span {
     font-family: 'Outfit', sans-serif;
     font-weight: 900;
-    font-size: 16px; /* Highly legible category indicator */
+    font-size: 16px;
+    /* Highly legible category indicator */
     color: rgba(255, 255, 255, 0.95);
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
     letter-spacing: 0.5px;
@@ -422,14 +471,17 @@ header {
     display: flex;
     flex-direction: column;
     gap: 3px;
-    min-width: 0; /* Prevents overflow */
+    min-width: 0;
+    /* Prevents overflow */
 }
 
 .hover-card-sku {
     font-family: 'Inter', sans-serif;
-    font-size: 8px; /* Prominent SKU text */
+    font-size: 8px;
+    /* Prominent SKU text */
     font-weight: 700;
-    color: #ffb81c; /* Locatel accent orange */
+    color: #ffb81c;
+    /* Locatel accent orange */
     letter-spacing: 0.8px;
     text-transform: uppercase;
     line-height: 1;
@@ -437,7 +489,8 @@ header {
 
 .hover-card-name {
     font-family: 'Inter', sans-serif;
-    font-size: 11.5px; /* Extremely readable name */
+    font-size: 11.5px;
+    /* Extremely readable name */
     font-weight: 700;
     color: #ffffff;
     line-height: 1.25;
@@ -460,7 +513,8 @@ header {
 
 .hover-card-stat {
     font-family: 'Inter', sans-serif;
-    font-size: 9px; /* Easily readable stats */
+    font-size: 9px;
+    /* Easily readable stats */
     color: rgba(255, 255, 255, 0.7);
     line-height: 1.2;
     display: flex;
@@ -490,9 +544,11 @@ header {
 
 .hover-card-price-val {
     font-family: 'Outfit', sans-serif;
-    font-size: 13px; /* Strong price representation */
+    font-size: 13px;
+    /* Strong price representation */
     font-weight: 700;
-    color: #00ff66; /* Vibrant bright green for price/value */
+    color: #00ff66;
+    /* Vibrant bright green for price/value */
     text-shadow: 0 0 10px rgba(0, 255, 102, 0.25);
 }
 
@@ -748,7 +804,9 @@ header {
 .store-card::before {
     content: '';
     position: absolute;
-    top: 0; left: 0; right: 0;
+    top: 0;
+    left: 0;
+    right: 0;
     height: 3px;
     background: linear-gradient(90deg, var(--primary), var(--accent-orange));
     opacity: 0.8;
@@ -882,8 +940,15 @@ header {
 }
 
 @keyframes slideDown {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Micro 3D Gondola Preview Styles */
@@ -951,6 +1016,7 @@ header {
     .store-header {
         padding: 16px 24px !important;
     }
+
     .store-dashboard-content {
         padding: 24px 20px;
     }
@@ -1155,7 +1221,7 @@ header {
     align-items: center;
     gap: 6px;
     transition: all 0.2s ease !important;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.01);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.01);
 }
 
 .btn-header-small:hover {
@@ -1233,10 +1299,12 @@ header {
         transform: scale(0.9);
         box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
     }
+
     70% {
         transform: scale(1);
         box-shadow: 0 0 0 4px rgba(16, 185, 129, 0);
     }
+
     100% {
         transform: scale(0.9);
         box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
@@ -1250,7 +1318,8 @@ header {
 .premium-modal-overlay {
     position: fixed !important;
     inset: 0 !important;
-    background: rgba(15, 23, 42, 0.45) !important; /* Elegant dark slate tint overlay */
+    background: rgba(15, 23, 42, 0.45) !important;
+    /* Elegant dark slate tint overlay */
     backdrop-filter: blur(10px) !important;
     -webkit-backdrop-filter: blur(10px) !important;
     z-index: 100000 !important;
@@ -1354,7 +1423,8 @@ header {
 
 .premium-modal-footer {
     padding: 16px 24px !important;
-    background: #f8fafc !important; /* Cool grey tint background for dialog buttons area */
+    background: #f8fafc !important;
+    /* Cool grey tint background for dialog buttons area */
     border-top: 1px solid rgba(229, 231, 235, 0.7) !important;
     display: flex !important;
     justify-content: flex-end !important;
@@ -1363,13 +1433,25 @@ header {
 
 /* Premium Dialog Animations */
 @keyframes premiumFadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 @keyframes premiumScaleIn {
-    from { transform: scale(0.95); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
+    from {
+        transform: scale(0.95);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
 .btn-edit-store:hover,
@@ -1384,9 +1466,11 @@ header {
     transition: all 0.2s ease;
     animation: premiumFadeIn 0.3s ease;
 }
+
 .aisle-header h3 {
     letter-spacing: -0.2px;
 }
+
 .aisle-header span {
     font-family: 'Inter', sans-serif;
 }
@@ -1398,19 +1482,25 @@ header {
     width: 44px;
     height: 22px;
 }
+
 .switch-premium input {
     opacity: 0;
     width: 0;
     height: 0;
 }
+
 .slider-premium {
     position: absolute;
     cursor: pointer;
-    top: 0; left: 0; right: 0; bottom: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     background-color: var(--border);
     transition: .3s;
     border-radius: 22px;
 }
+
 .slider-premium:before {
     position: absolute;
     content: "";
@@ -1421,19 +1511,28 @@ header {
     background-color: white;
     transition: .3s;
     border-radius: 50%;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
-.switch-premium input:checked + .slider-premium {
+
+.switch-premium input:checked+.slider-premium {
     background-color: var(--primary) !important;
 }
-.switch-premium input:checked + .slider-premium:before {
+
+.switch-premium input:checked+.slider-premium:before {
     transform: translateX(22px);
 }
 
 /* Shelf Collision Pulse Animation */
 @keyframes pulseError {
-    0% { box-shadow: 0 0 5px rgba(239, 68, 68, 0.4); border-color: rgba(239, 68, 68, 0.5); }
-    100% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.8); border-color: rgba(239, 68, 68, 1); }
+    0% {
+        box-shadow: 0 0 5px rgba(239, 68, 68, 0.4);
+        border-color: rgba(239, 68, 68, 0.5);
+    }
+
+    100% {
+        box-shadow: 0 0 20px rgba(239, 68, 68, 0.8);
+        border-color: rgba(239, 68, 68, 1);
+    }
 }
 
 /* Viewport Action Button - Glassmorphic overlay danger button */

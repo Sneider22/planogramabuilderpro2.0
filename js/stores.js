@@ -145,7 +145,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                     if (product) {
                                         const dims = state.getPlacedDimensions(layer.productId, layer.orientation || 0);
                                         if (dims && dims.depth > 0) {
-                                            storeTotalUnits += (layer.facings || 1) * Math.floor(g.config.shelfDepth / dims.depth);
+                                            const shelfDepth = shelf.depth !== undefined ? shelf.depth : g.config.shelfDepth;
+                                            storeTotalUnits += (layer.facings || 1) * Math.floor(shelfDepth / dims.depth);
                                         }
                                     }
                                 });
@@ -163,7 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                         <div style="flex: 1; min-width: 0;">
                             <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                                <h3 style="margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px;">${s.name}</h3>
+                                <h3 style="margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; min-width: 0;">${s.name}</h3>
                                 <div style="display: flex; align-items: center; gap: 4px;">
                                     <button class="btn-edit-store" title="Editar tienda" style="background:transparent; border:none; color:var(--text-muted); cursor:pointer; padding:2px; display:inline-flex; align-items:center; transition:color 0.2s;">
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

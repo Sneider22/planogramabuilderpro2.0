@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,7 +9,8 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Outfit:wght@700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Outfit:wght@700;900&display=swap"
+        rel="stylesheet">
 
     <!-- Styles -->
     <link rel="stylesheet" href="css/style.css">
@@ -19,6 +21,7 @@
     <!-- Excel Generation Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
+
 <body>
 
     <div class="app-container" id="main-app" style="display: grid;">
@@ -34,6 +37,25 @@
                     </svg>
                     Tienda
                 </button>
+                <div style="width:1px; height:24px; background:var(--border);"></div>
+                <div style="display:flex; gap:6px; align-items:center;">
+                    <button id="btn-undo" title="Deshacer (Ctrl+Z)"
+                        style="background:transparent; border:1px solid var(--border); color:var(--text); padding:6px 10px; border-radius:6px; cursor:pointer; display:flex; align-items:center; gap:4px; font-size:12px; font-weight:600; opacity:0.5; transition: all 0.2s;" disabled>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 7v6h6"></path>
+                            <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
+                        </svg>
+                        Deshacer
+                    </button>
+                    <button id="btn-redo" title="Rehacer (Ctrl+Y)"
+                        style="background:transparent; border:1px solid var(--border); color:var(--text); padding:6px 10px; border-radius:6px; cursor:pointer; display:flex; align-items:center; gap:4px; font-size:12px; font-weight:600; opacity:0.5; transition: all 0.2s;" disabled>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 7v6h-6"></path>
+                            <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7"></path>
+                        </svg>
+                        Rehacer
+                    </button>
+                </div>
                 <div style="width:1px; height:24px; background:var(--border);"></div>
                 <div style="display:flex; align-items:center; gap:12px;">
                     <img src="logo.png" alt="Logo" style="height: 28px; width: auto; object-fit: contain;"
@@ -51,9 +73,11 @@
                     style="background:rgba(99, 102, 241, 0.1); color:var(--primary); border:1px solid var(--primary); padding:8px 16px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">Ver
                     Informe Detallado</button>
                 <button
-                    style="background:var(--primary); color:white; border:none; padding:8px 16px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">Importar de SAP</button>
+                    style="background:var(--primary); color:white; border:none; padding:8px 16px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">Importar
+                    de SAP</button>
                 <button id="btn-logout-app"
-                    style="background: transparent; color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 8px 16px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">Cerrar Sesión</button>
+                    style="background: transparent; color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 8px 16px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">Cerrar
+                    Sesión</button>
             </div>
         </header>
 
@@ -71,7 +95,8 @@
                 <div id="report-content" style="flex:1; overflow-y:auto; padding:24px;">
                     <!-- Table injected here -->
                 </div>
-                <div style="padding:20px; background:rgba(0,0,0,0.2); text-align:right; display:flex; justify-content:flex-end; gap:12px;">
+                <div
+                    style="padding:20px; background:rgba(0,0,0,0.2); text-align:right; display:flex; justify-content:flex-end; gap:12px;">
                     <button id="btn-download-pdf"
                         style="background:var(--primary); color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:600;">Descargar
                         PDF</button>
@@ -168,15 +193,19 @@
 
             <div class="config-group">
                 <h3>Posicionamiento de Productos</h3>
-                <div class="field" style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
-                    <label style="margin-bottom: 0; cursor: pointer;" for="input-autopack">Alineación automática (Auto-pack)</label>
+                <div class="field"
+                    style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
+                    <label style="margin-bottom: 0; cursor: pointer;" for="input-autopack">Alineación automática
+                        (Auto-pack)</label>
                     <label class="switch-premium">
                         <input type="checkbox" id="input-autopack" checked>
                         <span class="slider-premium"></span>
                     </label>
                 </div>
-                <p style="font-size: 11px; color: var(--text-muted); margin-top: 6px; line-height: 1.4; margin-bottom: 0;">
-                    Desactiva el auto-pack para arrastrar y soltar productos en cualquier posición del estante (ubicación libre).
+                <p
+                    style="font-size: 11px; color: var(--text-muted); margin-top: 6px; line-height: 1.4; margin-bottom: 0;">
+                    Desactiva el auto-pack para arrastrar y soltar productos en cualquier posición del estante
+                    (ubicación libre).
                 </p>
             </div>
 
@@ -260,7 +289,8 @@
             <!-- Viewport Actions (Top Right) -->
             <div class="viewport-actions" style="position: absolute; top: 20px; right: 20px; z-index: 1000;">
                 <button id="btn-empty-gondola" class="btn-premium-danger btn-viewport-action">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="3 6 5 6 21 6"></polyline>
                         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                         <line x1="10" y1="11" x2="10" y2="17"></line>
@@ -316,7 +346,8 @@
                 <p style="font-size:11px; color:var(--text-muted);">Arrastra al estante deseado</p>
             </div>
             <div style="padding: 0 16px 16px;">
-                <input id="catalog-search" type="search" placeholder="Buscar producto por nombre o SKU..." autocomplete="off"
+                <input id="catalog-search" type="search" placeholder="Buscar producto por nombre o SKU..."
+                    autocomplete="off"
                     style="width:100%; border:1px solid var(--border); border-radius:10px; padding:10px 12px; font-size:13px; background:var(--input-bg); color:var(--text); outline:none;" />
             </div>
             <div class="catalog-list" id="catalog-list">
@@ -336,13 +367,18 @@
                 <p style="font-size: 14px; color: var(--text-muted); line-height: 1.5; margin: 0;">
                     ¿Estás seguro de que deseas eliminar permanentemente todos los productos colocados en esta góndola?
                 </p>
-                <p style="font-size: 12px; color: #ef4444; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.15); padding: 10px 12px; border-radius: 8px; margin: 12px 0 0 0; font-weight: 500; line-height: 1.4;">
-                    ⚠️ Esta acción retirará todos los artículos de todas las repisas de la góndola actual y no se puede deshacer.
+                <p
+                    style="font-size: 12px; color: #ef4444; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.15); padding: 10px 12px; border-radius: 8px; margin: 12px 0 0 0; font-weight: 500; line-height: 1.4;">
+                    ⚠️ Esta acción retirará todos los artículos de todas las repisas de la góndola actual y no se puede
+                    deshacer.
                 </p>
             </div>
-            <div class="premium-modal-footer" style="background: transparent; border-top: none; padding-top: 0; justify-content: flex-end; gap: 10px;">
+            <div class="premium-modal-footer"
+                style="background: transparent; border-top: none; padding-top: 0; justify-content: flex-end; gap: 10px;">
                 <button id="btn-cancel-empty-modal" class="btn-premium-secondary">Cancelar</button>
-                <button id="btn-confirm-empty-gondola" class="btn-premium-primary" style="background: #ef4444 !important; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2) !important;">Sí, Vaciar</button>
+                <button id="btn-confirm-empty-gondola" class="btn-premium-primary"
+                    style="background: #ef4444 !important; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2) !important;">Sí,
+                    Vaciar</button>
             </div>
         </div>
     </div>
@@ -352,4 +388,5 @@
     <script src="js/calculator.js"></script>
     <script src="js/editor.js"></script>
 </body>
+
 </html>
