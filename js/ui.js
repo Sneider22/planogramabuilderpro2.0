@@ -1784,8 +1784,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const deltaX = e.clientX - startMouseX;
             const deltaY = e.clientY - startMouseY;
             
-            currentRotateY = startRotateY + deltaX * 0.5;
-            currentRotateX = startRotateX - deltaY * 0.5;
+            currentRotateY = startRotateY + deltaX * 0.18;
+            currentRotateX = startRotateX - deltaY * 0.18;
             
             currentRotateX = Math.max(-60, Math.min(60, currentRotateX));
             

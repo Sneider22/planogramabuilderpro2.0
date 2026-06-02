@@ -618,6 +618,13 @@ class AppState {
                 if (p1.hookIndex === undefined) continue;
 
                 const w1 = this.getPlacementWidth(p1);
+                if (w1 > spacing) {
+                    const name = this._getProductName(p1);
+                    return {
+                        valid: false,
+                        reason: `Ancho excedido: El producto "${name}" (${w1}cm de ancho) supera la separación entre ganchos (${spacing}cm) en este nivel. Coloque un producto más pequeño o aumente la separación entre ganchos.`
+                    };
+                }
                 const hookX = margin + p1.hookIndex * spacing;
                 const leftEdge = hookX - w1 / 2;
                 const rightEdge = hookX + w1 / 2;
@@ -780,6 +787,16 @@ class AppState {
             const hookX = margin + i * spacing;
             const leftEdge = hookX - w1 / 2;
             const rightEdge = hookX + w1 / 2;
+
+            if (w1 > spacing) {
+                shelf.hookSpacing = originalSpacing;
+                shelf.products = originalProducts;
+                this._recalculateShelfX(shelfIndex);
+                return {
+                    valid: false,
+                    reason: `Ancho excedido: El producto en el Gancho ${i + 1} (${w1}cm de ancho) supera la nueva separación propuesta entre ganchos (${spacing}cm).`
+                };
+            }
 
             if (leftEdge < 0) {
                 shelf.hookSpacing = originalSpacing;
