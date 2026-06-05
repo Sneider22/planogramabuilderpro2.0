@@ -140,7 +140,7 @@ header {
 
 /* Main Viewport (3D Area) */
 .viewport {
-    padding: 80px 150px;
+    padding: 130px 150px 80px 280px;
     display: flex;
     align-items: flex-start;
     justify-content: flex-start;

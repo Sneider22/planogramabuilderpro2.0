@@ -216,9 +216,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const badgeColor = aisle === '' ? 'var(--text-muted)' : 'var(--primary)';
 
                 headerEl.innerHTML = `
-                    <span style="background: ${badgeBg}; color: ${badgeColor}; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px;">${badgeText}</span>
-                    <h3 style="margin: 0; font-size: 17px; font-weight: 700; color: var(--text);">${aisleTitle}</h3>
-                    <span style="color: var(--text-muted); font-size: 12px; font-weight: 500;">(${gondolasInAisle.length} góndola${gondolasInAisle.length !== 1 ? 's' : ''})</span>
+                    <span style="background: ${badgeBg}; color: ${badgeColor}; padding: 5px 12px; border-radius: 6px; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">${badgeText}</span>
+                    <h3 style="margin: 0; font-size: 20px; font-weight: 700; color: var(--text);">${aisleTitle}</h3>
+                    <span style="color: var(--text-muted); font-size: 14px; font-weight: 500;">(${gondolasInAisle.length} góndola${gondolasInAisle.length !== 1 ? 's' : ''})</span>
                 `;
                 gondolaList.appendChild(headerEl);
             }
@@ -346,25 +346,25 @@ document.addEventListener('DOMContentLoaded', () => {
                                     </div>
                                 </div>
                                 <p style="font-size:11px; color: var(--text-muted); font-weight: 600; margin-bottom: 8px;">${g.config.width}x${g.config.height}x${g.config.depth} cm</p>
-                                ${g.description ? `<p style="font-size:12px; color: var(--text-muted); font-style: italic; margin-bottom: 8px; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 4px;" title="${g.description}"><span>📝</span> <span style="overflow: hidden; text-overflow: ellipsis;">${g.description}</span></p>` : ''}
+                                ${g.description ? `<p style="font-size:12px; color: var(--text-muted); font-style: italic; margin-bottom: 8px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; white-space: normal;" title="${g.description}">${g.description}</p>` : ''}
                             </div>
-                            <div class="meta" style="margin-bottom: 0; display:flex; gap:6px; flex-wrap: wrap;">
-                                <span class="pill-badge" style="color: #10b981; background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.15); padding: 3px 6px; font-size: 10px; font-weight: 700; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
-                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+                             <div class="meta" style="margin-bottom: 0; display:flex; gap:6px; flex-wrap: wrap;">
+                                <span class="pill-badge" style="color: #047857; background: rgba(4, 120, 87, 0.08); border: 1px solid rgba(4, 120, 87, 0.15); padding: 4px 8px; font-size: 12px; font-weight: 700; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
                                     ${totalUnits} U.
                                 </span>
-                                <span class="pill-badge" style="color: var(--primary); background: var(--primary-light); border-color: rgba(0, 150, 57, 0.1); padding: 3px 6px; font-size: 10px; font-weight: 700; border-radius: 6px; display: inline-flex; align-items: center;">
+                                <span class="pill-badge" style="color: #475569; background: rgba(71, 85, 105, 0.08); border: 1px solid rgba(71, 85, 105, 0.15); padding: 4px 8px; font-size: 12px; font-weight: 700; border-radius: 6px; display: inline-flex; align-items: center;">
                                     ${typeLabel}
                                 </span>
                                 ${g.aisle ? `
-                                <span class="pill-badge" style="color: #6366f1; background: rgba(99, 102, 241, 0.1); border-color: rgba(99, 102, 241, 0.15); padding: 3px 6px; font-size: 10px; font-weight: 700; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
-                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                                <span class="pill-badge" style="color: #475569; background: rgba(71, 85, 105, 0.08); border: 1px solid rgba(71, 85, 105, 0.15); padding: 4px 8px; font-size: 12px; font-weight: 700; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
                                     ${g.aisle}
                                 </span>
                                 ` : ''}
                                 ${g.category ? `
-                                <span class="pill-badge" style="color: #ec4899; background: rgba(236, 72, 153, 0.1); border-color: rgba(236, 72, 153, 0.15); padding: 3px 6px; font-size: 10px; font-weight: 700; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
-                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none;"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+                                <span class="pill-badge" style="color: #475569; background: rgba(71, 85, 105, 0.08); border: 1px solid rgba(71, 85, 105, 0.15); padding: 4px 8px; font-size: 12px; font-weight: 700; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none;"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
                                     ${g.category}
                                 </span>
                                 ` : ''}
@@ -1029,7 +1029,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 doc.text("[Error cargando gráfico técnico frontal]", 40, 150);
             }
 
-            const tableHead = [['Estante', 'SKU', 'Producto', 'Cantidad', 'Precio Unit.', 'Valor Total']];
+            const tableHead = [['Estante', 'SKU', 'Producto', 'Cantidad']];
             const tableBody = [];
             let gondolaTotalUnits = 0;
             let gondolaTotalValue = 0;
@@ -1097,18 +1097,14 @@ document.addEventListener('DOMContentLoaded', () => {
                             levelName,
                             data.sku,
                             data.name,
-                            `${data.units} U.`,
-                            `$${data.price.toFixed(2)}`,
-                            `$${data.totalValue.toFixed(2)}`
+                            `${data.units} U.`
                         ]);
                     });
 
                     tableBody.push([
                         `Subtotal ${levelName}`,
                         '', '',
-                        `${shelfTotalUnits} U.`,
-                        '-',
-                        `$${shelfTotalValue.toFixed(2)}`
+                        `${shelfTotalUnits} U.`
                     ]);
                 }
             });
@@ -1116,9 +1112,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tableBody.push([
                 `TOTAL GÓNDOLA: ${g.name.toUpperCase()}`,
                 '', '',
-                `${gondolaTotalUnits} U.`,
-                '-',
-                `$${gondolaTotalValue.toFixed(2)}`
+                `${gondolaTotalUnits} U.`
             ]);
 
             doc.addPage('a4', 'p');
@@ -1180,41 +1174,31 @@ document.addEventListener('DOMContentLoaded', () => {
         doc.text(`Tienda: ${storeData.name.toUpperCase()} | Total Góndolas Planificadas: ${storeData.library.length}`, 40, 64);
         doc.text(`Generado por: Planogram Pro Retail Analytics Suite | Fecha: ${new Date().toLocaleString()}`, 40, 76);
 
-        // Stats Boxes
+        // Stats Boxes (Only two boxes: Capacity and SKUs, centered)
         doc.setFillColor(243, 244, 246);
         doc.setDrawColor(229, 231, 235);
-        doc.rect(40, 95, 160, 60, 'FD');
-        doc.setFontSize(8);
-        doc.setTextColor(100, 100, 100);
-        doc.text('VALOR INVENTARIO CONSOLIDADO', 50, 112);
-        doc.setFontSize(16);
-        doc.setTextColor(0, 150, 57);
-        doc.setFont('helvetica', 'bold');
-        doc.text(`$${grandTotalValue.toFixed(2)}`, 50, 138);
-
-        doc.setFillColor(243, 244, 246);
-        doc.rect(217, 95, 160, 60, 'FD');
+        doc.rect(80, 95, 200, 60, 'FD');
         doc.setFontSize(8);
         doc.setTextColor(100, 100, 100);
         doc.setFont('helvetica', 'normal');
-        doc.text('CAPACIDAD DE STOCK TOTAL', 227, 112);
+        doc.text('CAPACIDAD DE STOCK TOTAL', 95, 112);
         doc.setFontSize(16);
         doc.setTextColor(255, 184, 28); 
         doc.setFont('helvetica', 'bold');
-        doc.text(`${grandTotalUnits} Unidades`, 227, 138);
+        doc.text(`${grandTotalUnits} Unidades`, 95, 138);
 
         doc.setFillColor(243, 244, 246);
-        doc.rect(395, 95, 160, 60, 'FD');
+        doc.rect(315, 95, 200, 60, 'FD');
         doc.setFontSize(8);
         doc.setTextColor(100, 100, 100);
         doc.setFont('helvetica', 'normal');
-        doc.text('DIVERSIDAD DE REFERENCIAS (SKUs)', 405, 112);
+        doc.text('DIVERSIDAD DE REFERENCIAS (SKUs)', 330, 112);
         doc.setFontSize(16);
         doc.setTextColor(99, 102, 241);
         doc.setFont('helvetica', 'bold');
-        doc.text(`${grandUniqueSkus.size} SKUs Únicos`, 405, 138);
+        doc.text(`${grandUniqueSkus.size} SKUs Únicos`, 330, 138);
 
-        const summaryHead = [['SKU', 'Producto', 'Categoría', 'Precio Unitario', 'Total Unidades', 'Valor Consolidado']];
+        const summaryHead = [['SKU', 'Producto', 'Categoría', 'Total Unidades']];
         const summaryBody = [];
         
         Object.values(productStoreMap).forEach(item => {
@@ -1222,17 +1206,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 item.sku,
                 item.name,
                 item.category,
-                `$${item.price.toFixed(2)}`,
-                `${item.totalUnits} U.`,
-                `$${item.totalValue.toFixed(2)}`
+                `${item.totalUnits} U.`
             ]);
         });
 
         summaryBody.push([
             'TOTAL TIENDA CONSOLIDADO',
-            '', '', '',
-            `${grandTotalUnits} U.`,
-            `$${grandTotalValue.toFixed(2)}`
+            '', '',
+            `${grandTotalUnits} U.`
         ]);
 
         doc.autoTable({

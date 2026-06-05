@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 headerText += ` (${activePreset.aisle})`;
             }
             if (activePreset.description) {
-                headerText += ` · 📝 ${activePreset.description}`;
+                headerText += ` · ${activePreset.description}`;
             }
         }
         headerStoreName.innerText = headerText;
@@ -158,14 +158,38 @@ document.addEventListener('DOMContentLoaded', () => {
         if (stats.skus) stats.skus.innerText = globalStats.totalSKUs.toString();
     }
 
-    // --- Init App Content ---
-    function initAppContent() {
+    // --- Sync Sidebar Inputs ---
+    function syncInputFields() {
+        if (!state.gondola) return;
         Object.keys(inputs).forEach(key => {
-            if (key === 'gap' && inputs[key]) inputs[key].value = state.gondola.gapBetweenShelves;
-            else if (key === 'autoPack' && inputs[key]) inputs[key].checked = state.gondola.autoPack;
-            else if (inputs[key]) inputs[key].value = state.gondola[key];
+            if (!inputs[key]) return;
+            if (document.activeElement === inputs[key]) return;
+            
+            if (key === 'gap') {
+                inputs[key].value = state.gondola.gapBetweenShelves;
+            } else if (key === 'autoPack') {
+                inputs[key].checked = state.gondola.autoPack;
+            } else {
+                inputs[key].value = state.gondola[key] !== undefined ? state.gondola[key] : '';
+            }
         });
 
+        // Sync standard dimensions preset select dropdown
+        const dimPreset = document.getElementById('input-dim-preset');
+        if (dimPreset && document.activeElement !== dimPreset) {
+            const currentPresetVal = `${state.gondola.width}x${state.gondola.height}x${state.gondola.depth}`;
+            const optionExists = Array.from(dimPreset.options).some(opt => opt.value === currentPresetVal);
+            if (optionExists) {
+                dimPreset.value = currentPresetVal;
+            } else {
+                dimPreset.value = 'custom';
+            }
+        }
+    }
+
+    // --- Init App Content ---
+    function initAppContent() {
+        syncInputFields();
         renderGondola();
         renderCatalog();
         updateDashboard();
@@ -1524,7 +1548,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        state.on('gondola:updated', renderGondola);
+        state.on('gondola:updated', () => {
+            renderGondola();
+            syncInputFields();
+        });
         state.on('dashboard:update', updateDashboard);
     }
 
@@ -2144,8 +2171,84 @@ document.addEventListener('DOMContentLoaded', () => {
         doc.setTextColor(0, 150, 57);
         doc.text('DETALLE DE INVENTARIO Y CAPACIDAD', 40, 45);
 
+        const tableHead = [['Estante', 'SKU', 'Producto', 'Cantidad']];
+        const tableBody = [];
+        
+        let grandTotalUnits = 0;
+        let grandUniqueSkus = new Set();
+
+        state.gondola.shelves.forEach((s, sIdx) => {
+            if (!s || !s.products) return;
+            const shelfProducts = [];
+            let shelfTotalUnits = 0;
+
+            s.products.forEach(p => {
+                if (!p) return;
+                let layersToProcess = p.layers;
+                if (!layersToProcess) {
+                    if (p.productId) {
+                        layersToProcess = [];
+                        for (let i = 0; i < (p.stacks || 1); i++) {
+                            layersToProcess.push({ productId: p.productId, facings: p.facings || 1, orientation: p.orientation || 0 });
+                        }
+                    } else {
+                        return;
+                    }
+                }
+
+                layersToProcess.forEach(layer => {
+                    if (!layer || !layer.productId) return;
+                    const product = state.getProductById(layer.productId);
+                    if (!product) return;
+
+                    const dims = state.getPlacedDimensions(layer.productId, layer.orientation || 0);
+                    if (!dims || !dims.depth || dims.depth <= 0) return;
+
+                    const unitsInZ = Math.floor(state.gondola.shelfDepth / dims.depth);
+                    const totalUnits = (layer.facings || 1) * unitsInZ;
+
+                    let existing = shelfProducts.find(x => x.sku === product.sku);
+                    if (!existing) {
+                        existing = { sku: product.sku, name: product.name, units: 0 };
+                        shelfProducts.push(existing);
+                    }
+                    existing.units += totalUnits;
+                    shelfTotalUnits += totalUnits;
+                    grandTotalUnits += totalUnits;
+                    grandUniqueSkus.add(product.sku);
+                });
+            });
+
+            if (shelfProducts.length > 0) {
+                const isPerchero = s.type === 'perchero';
+                const levelName = isPerchero ? `Nivel ${sIdx + 1} (Perchero)` : `Nivel ${sIdx + 1} (Plancha)`;
+
+                shelfProducts.forEach(data => {
+                    tableBody.push([
+                        levelName,
+                        data.sku,
+                        data.name,
+                        `${data.units} U.`
+                    ]);
+                });
+
+                tableBody.push([
+                    `Subtotal ${levelName}`,
+                    '', '',
+                    `${shelfTotalUnits} U.`
+                ]);
+            }
+        });
+
+        tableBody.push([
+            `TOTAL GLOBAL (${grandUniqueSkus.size} SKUs Únicos)`,
+            '', '',
+            `${grandTotalUnits} U.`
+        ]);
+
         doc.autoTable({
-            html: '#report-table',
+            head: tableHead,
+            body: tableBody,
             startY: 65,
             theme: 'grid',
             headStyles: { fillColor: [0, 150, 57] },
@@ -2154,22 +2257,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const firstCell = data.row.cells[0];
                 if (firstCell && firstCell.text && firstCell.text.length > 0) {
                     const txt = (firstCell.text[0] || '').trim();
-                    if (txt.indexOf('Góndola:') === 0) {
-                        data.cell.styles.fillColor = [217, 238, 225];
-                        data.cell.styles.textColor = [31, 41, 55];
-                        data.cell.styles.fontStyle = 'bold';
-                    } else if (txt.indexOf('Nivel ') === 0) {
+                    if (txt.indexOf('Nivel ') === 0) {
                         data.cell.styles.fillColor = [240, 253, 244];
                         data.cell.styles.textColor = [0, 150, 57];
                         data.cell.styles.fontStyle = 'bold';
                     } else if (txt.indexOf('Subtotal ') === 0) {
                         data.cell.styles.fillColor = [249, 250, 251];
                         data.cell.styles.textColor = [107, 114, 128];
-                        data.cell.styles.fontStyle = 'bold';
-                        if (data.column.index === 0) data.cell.styles.halign = 'right';
-                    } else if (txt.indexOf('Total ') === 0) {
-                        data.cell.styles.fillColor = [235, 247, 239];
-                        data.cell.styles.textColor = [0, 150, 57];
                         data.cell.styles.fontStyle = 'bold';
                         if (data.column.index === 0) data.cell.styles.halign = 'right';
                     } else if (txt.indexOf('TOTAL GLOBAL') === 0) {
