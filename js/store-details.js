@@ -1,8 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
     const authKey = 'planogram_logged_in';
     
-    // Check session
-    if (localStorage.getItem(authKey) !== 'true') {
+    // Always require a fresh session for direct access to this page.
+    if (localStorage.getItem(authKey) !== 'true' || sessionStorage.getItem('planogram_session_active') !== 'true') {
+        localStorage.removeItem(authKey);
         window.location.href = 'login.html';
         return;
     }
@@ -49,6 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnLogout) {
         btnLogout.addEventListener('click', () => {
             localStorage.removeItem(authKey);
+            sessionStorage.removeItem('planogram_session_active');
             window.location.href = 'login.html';
         });
     }

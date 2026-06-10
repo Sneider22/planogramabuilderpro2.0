@@ -1,12 +1,12 @@
 document.addEventListener('DOMContentLoaded', () => {
     const authKey = 'planogram_logged_in';
     const loginError = document.getElementById('login-error');
-    
-    // Redirect if already logged in
-    if (localStorage.getItem(authKey) === 'true') {
-        window.location.href = 'stores.html';
-        return;
-    }
+
+    // Reset session state on login page load so the form always appears
+    localStorage.removeItem(authKey);
+    localStorage.removeItem('planogram_store_id');
+    localStorage.removeItem('planogram_gondola_id');
+    localStorage.removeItem('planogram_trigger_report');
 
     const checkLogin = () => {
         const user = document.getElementById('login-username').value.trim().toLowerCase();
@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (validUser && validPass) {
             localStorage.setItem(authKey, 'true');
+            sessionStorage.setItem('planogram_session_active', 'true');
             window.location.href = 'stores.html';
         } else {
             if (loginError) loginError.style.display = 'block';

@@ -5,7 +5,8 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- Session Check ---
     const authKey = 'planogram_logged_in';
-    if (localStorage.getItem(authKey) !== 'true') {
+    if (localStorage.getItem(authKey) !== 'true' || sessionStorage.getItem('planogram_session_active') !== 'true') {
+        localStorage.removeItem(authKey);
         window.location.href = 'login.html';
         return;
     }
@@ -78,6 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('btn-logout-app').addEventListener('click', () => {
         localStorage.removeItem(authKey);
+        sessionStorage.removeItem('planogram_session_active');
         window.location.href = 'login.html';
     });
 

@@ -388,6 +388,7 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.removeItem('planogram_screen');
             localStorage.removeItem('planogram_store_id');
             localStorage.removeItem('planogram_gondola_id');
+            sessionStorage.removeItem('planogram_session_active');
             storeSelectorScreen.style.display = 'none';
             document.getElementById('store-details-screen').style.display = 'none';
             mainApp.style.display = 'none';
