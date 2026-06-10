@@ -1,54 +1,121 @@
-# 🏗️ Planogram Pro Builder | Retail Engineering
+# Planogram Pro Builder
 
-**Planogram Pro Builder** es una herramienta profesional de ingeniería retail diseñada para la creación, gestión y visualización técnica de planogramas en 3D. Permite a los gestores de categoría y personal de tienda diseñar mobiliario real, validar capacidades de inventario y generar reportes financieros precisos.
+Planogram Pro Builder es un prototipo de aplicación web para la gestión operativa de espacios comerciales en retail. Su objetivo es ofrecer un flujo de trabajo técnico para la creación, catalogación y evaluación de góndolas a partir de información de inventario y parámetros de mobiliario.
 
----
+## Propósito
 
-## Características Principales
+La herramienta está diseñada para:
+- gestionar múltiples tiendas y sus configuraciones de góndolas;
+- asociar productos a espacios físicos de exhibición;
+- validar ocupación de espacio y mapa de colocación;
+- generar reportes descargables con datos de inventario y valor comercial.
 
-### 1. 🧊 Motor de Visualización 3D
-- Renderizado técnico utilizando transformaciones CSS3.
-- Controles interactivos de **Giro Horizontal**, **Inclinación** y **Zoom**.
-- Representación real de profundidad (Eje Z) y apilamiento (Eje Y).
+El diseño prioriza una experiencia de prototipo funcional, apoyada en un modelo de persistencia local que facilita pruebas rápidas sin requerir backend.
 
-### 2. 📚 Librería de Mobiliario (Presets)
-- Clasificación por tipos: **Góndola de Pared**, **Góndola Central (Doble)**, **Cabecera** y **Mural Refrigerado**.
-- Sistema de persistencia basado en `localStorage` para guardar y cargar configuraciones personalizadas.
-- Presets de dimensiones estándar de la industria para configuración rápida.
+## Estructura del Proyecto
 
-### 3. 🛒 Gestión de Inventario Inteligente
-- **Cálculo de Capacidad:** Validación en tiempo real de espacio lineal (Ancho) y vertical (Alto).
-- **Catálogo Segmentado:** Productos organizados por categorías (Lácteos, Snacks, Limpieza, Despensa, Bebidas).
-- **Dashboard en Tiempo Real:** Seguimiento de Valor de Inventario ($), Unidades Totales y SKUs únicos.
+### Archivos principales
 
-### 4. 📄 Reportes Técnicos
-- Generación de informes detallados en formato HTML.
-- **Exportación a PDF:** Integración con `jsPDF` para descargar reportes profesionales que incluyen SKU, nombre, cantidades, precio unitario y valor total.
+- `index.html` - Página de inicio que redirige a `login.html`.
+- `login.html` - Pantalla de autenticación de prototipo.
+- `stores.html` - Listado de tiendas registradas, creación, edición y eliminación de tiendas.
+- `store-details.html` - Panel de gestión de góndolas dentro de una tienda.
+- `editor.html` - Editor de góndolas con simulación de posicionamiento y generación de reportes.
+- `css/style.css` - Estilos globales y diseño de la interfaz.
+- `js/*.js` - Lógica de la aplicación.
 
----
+### Componentes lógicos
 
-## Tecnologías Utilizadas
-- **Frontend:** Vanilla JavaScript (ES6+), HTML5 Semántico.
-- **Estilos:** CSS3 Avanzado (Flexbox, Grid, 3D Transforms, Custom Properties).
-- **Librerías Externas:** 
-  - `jsPDF`: Generación de documentos PDF.
-  - `jsPDF-AutoTable`: Formateo de tablas en reportes.
-  - `Google Fonts (Inter)`: Tipografía profesional.
+- `js/state.js` - Clase `AppState` que centraliza el estado de la aplicación, persistencia en `localStorage` y catálogo de productos.
+- `js/login.js` - Control de acceso de prototipo con credenciales fijas (`admin` / `admin123`).
+- `js/stores.js` - Renderizado de la lista de tiendas, manejo de modales y navegación hacia el detalle de la tienda.
+- `js/store-details.js` - Flujo de góndolas, creación/edición/eliminación y reportes globales de tienda.
+- `js/editor.js` - Editor de góndolas con lógica de colocación, cálculo de espacio y exporte de reportes.
+- `js/ui.js` - Funciones auxiliares de interfaz, gestión de vistas y utilidades de interacción.
+- `js/calculator.js` - Cálculos de espacios, unidades y validación de profundidad.
 
----
+## Funcionamiento general
 
-## Instrucciones de Uso
+### Autenticación
 
-1. **Configurar el Mueble:** Usa el panel izquierdo para definir las dimensiones, el tipo de mueble y el número de planchas (estantes).
-2. **Diseñar el Planograma:**
-   - **Añadir:** Arrastra un producto desde el catálogo derecho hacia cualquier estante.
-   - **Apilar:** Arrastra el mismo producto sobre uno ya colocado para apilarlo verticalmente (si hay espacio).
-   - **Remover:** Haz doble clic sobre un producto en el estante para eliminarlo.
-3. **Perspectiva:** Usa el widget de **Vista 3D** para rotar el mueble y verificar la profundidad de los productos.
-4. **Guardar:** Haz clic en "Guardar como Preset" para añadir tu diseño a la librería local.
-5. **Reportar:** Haz clic en "Ver Informe Detallado" para revisar el costo del inventario y descargarlo en PDF.
+El acceso se controla en el front-end mediante `localStorage` y un indicador `planogram_logged_in`. Cuando el usuario valida la credencial, se redirige a `stores.html`.
 
----
+### Gestión de tiendas
 
-## Licencia
-Desarrollado para fines de gestión de inventario y optimización de espacios retail.
+Cada tienda se guarda en `localStorage` bajo `planogram_stores`. El objeto de tienda incluye:
+
+- `id` - Identificador interno.
+- `name` - Nombre visible.
+- `createdAt` - Marca de tiempo.
+- `library` - Lista de góndolas asociadas.
+
+La aplicación permite:
+- crear tiendas con ID generados o personalizados;
+- editar metadatos de la tienda;
+- eliminar tiendas con limpieza de estado asociado.
+
+### Gestión de góndolas
+
+Una góndola es un objeto de configuración que contiene parámetros básicos de mobiliario y un listado de estantes.
+
+La lógica central del estado mantiene:
+- dimensiones del módulo (`width`, `height`, `depth`);
+- número de estantes y separación entre ellos;
+- estructura de cada estante con productos colocados.
+
+Las góndolas se organizan por pasillo y categoría dentro de la tienda para facilitar su localización.
+
+### Catálogo de productos
+
+El catálogo de productos está implementado como un array en `js/state.js`. Cada producto cuenta con:
+- `id` y `sku`
+- `name`
+- `width`, `height`, `depth`
+- `price`
+- `color`
+- `category`
+
+Este catálogo simula un universo de productos de retail, con énfasis en farmacia, cuidado personal, nutrición y bebidas.
+
+### Persistencia
+
+Toda la información de tiendas, góndolas y configuraciones se conserva en `localStorage`:
+
+- `planogram_stores`
+- `planogram_next_store_auto_id`
+- `planogram_store_id`
+- `planogram_gondola_id`
+- `planogram_trigger_report`
+
+Esto permite continuar el flujo dentro del navegador sin necesidad de base de datos.
+
+## Generación de reportes
+
+La solución integra las siguientes librerías externas para exportes:
+
+- `jsPDF` - generador PDF en cliente.
+- `jsPDF-AutoTable` - construcción de tablas dinámicas en PDF.
+- `xlsx` - soporte de exportación a Excel desde la interfaz.
+
+Los reportes incluyen métricas operativas como:
+- valor total de inventario por góndola;
+- cantidad de unidades disponibles;
+- SKU y descripción de producto;
+- capacidad ocupada vs. profundidad disponible.
+
+## Flujo de uso recomendado
+
+1. Iniciar sesión en `login.html` con las credenciales del prototipo.
+2. Crear una nueva tienda en `stores.html`.
+3. Acceder a `store-details.html` para agregar y administrar góndolas.
+4. En las góndolas, usar el editor para asignar productos y validar ocupación.
+5. Generar reportes globales o específicos para descargar como PDF o Excel.
+
+## Alcance del prototipo
+
+Este proyecto está enfocado en la parte front-end de un sistema de planogramas. No incluye servidor, autenticación real ni almacenamiento remoto. Su valor está en:
+
+- validación de conceptos de UX para retail;
+- simulación de catálogo y espacio de exhibición;
+- comportamiento técnico de armado de reportes.
+
